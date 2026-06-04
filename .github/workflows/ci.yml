@@ -40,9 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install osv-scanner
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/google/osv-scanner/main/install_from_github_releases.sh | sh -s -- -b /usr/local/bin
-
       - name: Scan for vulnerabilities
-        run: osv-scanner --lockfile=package-lock.json
+        uses: google/osv-scanner-action/osv-scanner-action@v2
+        with:
+          scan-args: --lockfile=package-lock.json
