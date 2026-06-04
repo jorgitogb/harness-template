@@ -30,6 +30,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Install pnpm (required by changesets)
+        run: npm install -g pnpm@latest
+
       - name: Create Release PR or Publish
         uses: changesets/action@v1
         with:
