@@ -63,7 +63,7 @@ export async function promptWizard(detected: {
   });
   if (p.isCancel(stack)) process.exit(0);
 
-  // Framework (only when stack is Node)
+  // Framework (only when stack is Node or Python)
   let framework: Framework = "none";
   if (stack === "node") {
     const frameworkSelect = await p.select({
@@ -73,6 +73,19 @@ export async function promptWizard(detected: {
         { value: "react" as Framework, label: "React" },
         { value: "astro" as Framework, label: "Astro" },
         { value: "next" as Framework, label: "Next.js" },
+      ],
+      initialValue: detected.framework || "none",
+    });
+    if (p.isCancel(frameworkSelect)) process.exit(0);
+    framework = frameworkSelect;
+  } else if (stack === "python") {
+    const frameworkSelect = await p.select({
+      message: "Which framework?",
+      options: [
+        { value: "none" as Framework, label: "None (generic Python)" },
+        { value: "fastapi" as Framework, label: "FastAPI" },
+        { value: "django" as Framework, label: "Django" },
+        { value: "flask" as Framework, label: "Flask" },
       ],
       initialValue: detected.framework || "none",
     });

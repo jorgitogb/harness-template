@@ -194,4 +194,69 @@ describe("detect (full)", () => {
     expect(result.framework).toBe("none");
     cleanup();
   });
+
+  it("detects FastAPI from requirements.txt", () => {
+    setup(["requirements.txt"]);
+    writeFileSync(join(TMP, "requirements.txt"), "fastapi==0.104.0\nuvicorn\n");
+    const result = detect(TMP);
+    expect(result.framework).toBe("fastapi");
+    cleanup();
+  });
+
+  it("detects Django from requirements.txt", () => {
+    setup(["requirements.txt"]);
+    writeFileSync(join(TMP, "requirements.txt"), "Django>=4.2\npsycopg2\n");
+    const result = detect(TMP);
+    expect(result.framework).toBe("django");
+    cleanup();
+  });
+
+  it("detects Flask from requirements.txt", () => {
+    setup(["requirements.txt"]);
+    writeFileSync(join(TMP, "requirements.txt"), "Flask==3.0.0\nWerkzeug\n");
+    const result = detect(TMP);
+    expect(result.framework).toBe("flask");
+    cleanup();
+  });
+
+  it("detects Django from pyproject.toml", () => {
+    setup(["pyproject.toml"]);
+    writeFileSync(join(TMP, "pyproject.toml"), '[project]\ndependencies = ["django>=4.2", "psycopg2"]\n');
+    const result = detect(TMP);
+    expect(result.framework).toBe("django");
+    cleanup();
+  });
+
+  it("detects FastAPI from pyproject.toml", () => {
+    setup(["pyproject.toml"]);
+    writeFileSync(join(TMP, "pyproject.toml"), '[project]\ndependencies = ["fastapi>=0.104", "uvicorn"]\n');
+    const result = detect(TMP);
+    expect(result.framework).toBe("fastapi");
+    cleanup();
+  });
+
+  it("detects Flask from setup.cfg", () => {
+    setup(["setup.cfg"]);
+    writeFileSync(join(TMP, "setup.cfg"), "[options]\ninstall_requires =\n    Flask>=3.0\n    Werkzeug\n");
+    const result = detect(TMP);
+    expect(result.framework).toBe("flask");
+    cleanup();
+  });
+
+  it("prefers Django over FastAPI when both present in Python", () => {
+    setup(["requirements.txt"]);
+    writeFileSync(join(TMP, "requirements.txt"), "Django>=4.2\nfastapi==0.104.0\n");
+    const result = detect(TMP);
+    expect(result.framework).toBe("django");
+    cleanup();
+  });
+
+  it("detects framework from Node package.json not Python files", () => {
+    setup(["package.json", "requirements.txt"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { react: "^18.2.0" } }));
+    writeFileSync(join(TMP, "requirements.txt"), "flask==3.0.0\n");
+    const result = detect(TMP);
+    expect(result.framework).toBe("react");
+    cleanup();
+  });
 });

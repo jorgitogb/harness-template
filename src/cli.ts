@@ -26,7 +26,7 @@ Usage:
 Options:
   --cli <name>          Target AI CLI (opencode, claude, codex) [default: opencode]
   --stack <name>        Tech stack (python, node, go, rust, generic) [default: auto-detect]
-  --framework <name>    Framework when stack=node (react, astro, next, none) [default: auto-detect]
+  --framework <name>    Framework when stack=node|python (react, astro, next, fastapi, django, flask, none) [default: auto-detect]
   --sdd / --no-sdd      Enable Spec-Driven Development [default: true]
   --tdd / --no-tdd      Enable Test-Driven Development [default: true]
   --best-practices      Enable best-practices checks in init.sh [default: true]

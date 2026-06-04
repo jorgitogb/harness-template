@@ -151,4 +151,76 @@ describe("buildPlan", () => {
     expect(gitignoreFile!.content).toContain(".astro/");
     rmSync(TMP, { recursive: true, force: true });
   });
+
+  it("includes FastAPI conventions when framework=fastapi", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "fastapi" }), TMP);
+    const conventionsFile = plan.find((f) => f.path === "docs/conventions.md");
+    expect(conventionsFile).toBeDefined();
+    expect(conventionsFile!.content).toContain("PEP 8");
+    expect(conventionsFile!.content).toContain("APIRouter");
+    expect(conventionsFile!.content).toContain("Pydantic");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Django conventions when framework=django", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "django" }), TMP);
+    const conventionsFile = plan.find((f) => f.path === "docs/conventions.md");
+    expect(conventionsFile).toBeDefined();
+    expect(conventionsFile!.content).toContain("PEP 8");
+    expect(conventionsFile!.content).toContain("Django");
+    expect(conventionsFile!.content).toContain("models.py");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Flask conventions when framework=flask", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "flask" }), TMP);
+    const conventionsFile = plan.find((f) => f.path === "docs/conventions.md");
+    expect(conventionsFile).toBeDefined();
+    expect(conventionsFile!.content).toContain("PEP 8");
+    expect(conventionsFile!.content).toContain("Flask");
+    expect(conventionsFile!.content).toContain("create_app");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes FastAPI init checks when framework=fastapi", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "fastapi" }), TMP);
+    const initShFile = plan.find((f) => f.path === "init.sh");
+    expect(initShFile).toBeDefined();
+    expect(initShFile!.content).toContain("fastapi");
+    expect(initShFile!.content).toContain("uvicorn");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Django init checks when framework=django", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "django" }), TMP);
+    const initShFile = plan.find((f) => f.path === "init.sh");
+    expect(initShFile).toBeDefined();
+    expect(initShFile!.content).toContain("django");
+    expect(initShFile!.content).toContain("manage.py");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Flask init checks when framework=flask", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "flask" }), TMP);
+    const initShFile = plan.find((f) => f.path === "init.sh");
+    expect(initShFile).toBeDefined();
+    expect(initShFile!.content).toContain("flask");
+    expect(initShFile!.content).toContain("create_app");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Python framework gitignore entries", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "django" }), TMP);
+    const gitignoreFile = plan.find((f) => f.path === ".gitignore");
+    expect(gitignoreFile).toBeDefined();
+    expect(gitignoreFile!.content).toContain("db.sqlite3");
+    rmSync(TMP, { recursive: true, force: true });
+  });
 });

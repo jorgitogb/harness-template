@@ -107,4 +107,39 @@ describe("getStackVars", () => {
     expect(vars.TEST_COMMAND).toContain("npm test");
     expect(vars.TEST_COMMAND).not.toContain("astro check");
   });
+
+  it("merges FastAPI conventions when framework=fastapi", () => {
+    const vars = getStackVars("python", "fastapi");
+    expect(vars.STACK_CONVENTIONS).toContain("PEP 8");
+    expect(vars.STACK_CONVENTIONS).toContain("APIRouter");
+    expect(vars.STACK_CONVENTIONS).toContain("Pydantic");
+    expect(vars.STACK_CONVENTIONS).toContain("Depends");
+    expect(vars.TEST_COMMAND).toContain("pytest");
+  });
+
+  it("merges Django conventions when framework=django", () => {
+    const vars = getStackVars("python", "django");
+    expect(vars.STACK_CONVENTIONS).toContain("PEP 8");
+    expect(vars.STACK_CONVENTIONS).toContain("Django");
+    expect(vars.STACK_CONVENTIONS).toContain("models.py");
+    expect(vars.STACK_CONVENTIONS).toContain("class-based views");
+    expect(vars.TEST_COMMAND).toContain("pytest");
+  });
+
+  it("merges Flask conventions when framework=flask", () => {
+    const vars = getStackVars("python", "flask");
+    expect(vars.STACK_CONVENTIONS).toContain("PEP 8");
+    expect(vars.STACK_CONVENTIONS).toContain("Flask");
+    expect(vars.STACK_CONVENTIONS).toContain("blueprints");
+    expect(vars.STACK_CONVENTIONS).toContain("create_app");
+    expect(vars.TEST_COMMAND).toContain("pytest");
+  });
+
+  it("returns generic Python vars when framework=none", () => {
+    const vars = getStackVars("python", "none");
+    expect(vars.STACK_CONVENTIONS).toContain("PEP 8");
+    expect(vars.STACK_CONVENTIONS).not.toContain("FastAPI");
+    expect(vars.STACK_CONVENTIONS).not.toContain("Django");
+    expect(vars.TEST_COMMAND).toContain("pytest");
+  });
 });
