@@ -1,5 +1,11 @@
 # @jorgegb/harness-init
 
+## 0.2.1
+
+### Patch Changes
+
+- [`5f7cbc7`](https://github.com/jorgitogb/harness-template/commit/5f7cbc79f2f2415475b91fee2cb9eac6d0f2c37c) Thanks [@jorgitogb](https://github.com/jorgitogb)! - Fix repository URL in package.json to point to correct GitHub org (jorgitogb).
+
 ## 0.2.0
 
 ### Minor Changes
