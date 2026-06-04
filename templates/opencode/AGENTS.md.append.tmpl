@@ -13,3 +13,9 @@
 - Agent permissions are enforced by opencode. The leader cannot edit `src/` or `tests/`.
 - Use `Tab` to cycle between primary agents during a session.
 - Use `session_child_first` / `session_child_cycle` / `session_parent` to navigate between parent and child sessions.
+
+## Recommended tools
+
+- **Context7** — Fetch live library/framework docs.
+  Add to `opencode.jsonc`: `"mcpServers": { "context7": { "command": "npx", "args": ["@opencontext7/mcp-server"] } }`
+- **Engram** — Persistent memory across sessions. Built into opencode.

@@ -28,6 +28,7 @@ Options:
   --stack <name>        Tech stack (python, node, go, rust, generic) [default: auto-detect]
   --framework <name>    Framework when stack=node|python (react, astro, next, fastapi, django, flask, none) [default: auto-detect]
   --sdd / --no-sdd      Enable Spec-Driven Development [default: true]
+  --task-backend <val>  Task backend (json, linear, notion) [default: json]
   --tdd / --no-tdd      Enable Test-Driven Development [default: true]
   --best-practices      Enable best-practices checks in init.sh [default: true]
   --learning / --no-learning  Learning mode (step-by-step explanations) [default: false]
@@ -67,6 +68,7 @@ if (isNonInteractive) {
     cli: cliArgs.cli ?? detected.cli ?? "opencode",
     stack: cliArgs.stack ?? detected.stack,
     framework: cliArgs.framework ?? detected.framework,
+    taskBackend: cliArgs.taskBackend ?? "json",
     sdd: cliArgs.sdd ?? true,
     tdd: cliArgs.tdd ?? true,
     bestPractices: cliArgs.bestPractices ?? true,
@@ -110,4 +112,6 @@ if (result.errors.length > 0) {
   process.exit(1);
 }
 
-console.log("Done. Run `./init.sh` to verify your environment.");
+console.log("\nDone. Run `./init.sh` to verify your environment.");
+console.log("Review the generated files above.");
+console.log("Have ideas or feature requests? → https://github.com/jorgitogb/harness-template/issues/new");

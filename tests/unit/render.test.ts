@@ -41,6 +41,7 @@ describe("renderTemplate", () => {
       STACK_CONVENTIONS: "",
       RUNTIME_CHECKS: "",
       TEST_COMMAND: "",
+      TASK_BACKEND_NOTE: "Source of truth: local feature_list.json",
     });
     expect(result).toContain("my-project");
     expect(result).toContain("A test project");

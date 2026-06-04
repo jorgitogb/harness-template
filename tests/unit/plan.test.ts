@@ -11,6 +11,7 @@ function baseAnswers(overrides: Partial<Answers> = {}): Answers {
     cli: "opencode",
     stack: "python",
     framework: "none",
+    taskBackend: "json",
     sdd: true,
     tdd: true,
     bestPractices: true,
@@ -175,6 +176,33 @@ describe("buildPlan", () => {
     const featureListFile = plan.find((f) => f.path === "feature_list.json");
     expect(featureListFile).toBeDefined();
     expect(featureListFile!.content).not.toContain("hello_harness");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes json task-backend note in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("Source of truth: local feature_list.json");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes linear task-backend note in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("Source of truth: Linear");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes notion task-backend note in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "notion" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("Source of truth: Notion");
     rmSync(TMP, { recursive: true, force: true });
   });
 

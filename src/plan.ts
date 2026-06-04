@@ -4,10 +4,13 @@ import type { Stack, Cli, Framework } from "./detect.js";
 import type { RenderVars } from "./render.js";
 import { renderTemplate, getStackVars, loadTemplate } from "./render.js";
 
+export type TaskBackend = "json" | "linear" | "notion";
+
 export interface Answers {
   cli: Cli;
   stack: Stack;
   framework: Framework;
+  taskBackend: TaskBackend;
   sdd: boolean;
   tdd: boolean;
   bestPractices: boolean;
@@ -40,10 +43,16 @@ function buildRenderVars(answers: Answers): RenderVars {
     sdd: true,
     status: "pending",
   }, null, 2);
+  const taskBackendNotes: Record<TaskBackend, string> = {
+    json: "Source of truth: local feature_list.json",
+    linear: "Source of truth: Linear. Sync changes to feature_list.json",
+    notion: "Source of truth: Notion. Sync changes to feature_list.json",
+  };
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
     DEMO_FEATURE: answers.seedDemo ? demoEntry : "",
+    TASK_BACKEND_NOTE: taskBackendNotes[answers.taskBackend],
     ...stackVars,
   };
 }

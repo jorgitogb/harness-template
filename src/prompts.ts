@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import type { Stack, Cli, Framework } from "./detect.js";
-import type { Answers } from "./plan.js";
+import type { Answers, TaskBackend } from "./plan.js";
 
 const ALL_AGENTS = [
   { name: "leader", label: "leader — orchestrates, never edits code", initial: true },
@@ -18,9 +18,9 @@ const ALL_RULES = [
   { name: "no-done-without-green-tests", label: "no-done-without-green-tests", initial: true },
   { name: "approved-spec-before-code", label: "approved-spec-before-code", initial: true },
   { name: "progress-on-disk", label: "progress-on-disk — artifacts in files, not chat", initial: true },
-  { name: "conventional-commits", label: "conventional-commits", initial: false },
-  { name: "no-new-deps-without-adr", label: "no-new-deps-without-adr", initial: false },
-  { name: "document-exports", label: "document-exports", initial: false },
+  { name: "conventional-commits", label: "conventional-commits", initial: true },
+  { name: "no-new-deps-without-adr", label: "no-new-deps-without-adr", initial: true },
+  { name: "document-exports", label: "document-exports", initial: true },
 ];
 
 export async function promptWizard(detected: {
@@ -112,6 +112,18 @@ export async function promptWizard(detected: {
   });
   if (p.isCancel(bestPractices)) process.exit(0);
 
+  // Task backend
+  const taskBackend = await p.select({
+    message: "Task tracking backend?",
+    options: [
+      { value: "json" as TaskBackend, label: "Local JSON (feature_list.json + progress/)" },
+      { value: "linear" as TaskBackend, label: "Linear (external — doc only for now)" },
+      { value: "notion" as TaskBackend, label: "Notion (external — doc only for now)" },
+    ],
+    initialValue: "json" as TaskBackend,
+  });
+  if (p.isCancel(taskBackend)) process.exit(0);
+
   // Learning mode
   const learningMode = await p.confirm({
     message: "Enable learning mode? (agents explain decisions step-by-step)",
@@ -138,8 +150,8 @@ export async function promptWizard(detected: {
     options: ALL_AGENTS.map((a) => ({
       value: a.name,
       label: a.label,
-      initial: a.initial,
     })),
+    initialValues: ALL_AGENTS.filter((a) => a.initial).map((a) => a.name),
     required: true,
   });
   if (p.isCancel(agentChoices)) process.exit(0);
@@ -150,8 +162,8 @@ export async function promptWizard(detected: {
     options: ALL_RULES.map((r) => ({
       value: r.name,
       label: r.label,
-      initial: r.initial,
     })),
+    initialValues: ALL_RULES.filter((r) => r.initial).map((r) => r.name),
     required: true,
   });
   if (p.isCancel(ruleChoices)) process.exit(0);
@@ -192,6 +204,7 @@ export async function promptWizard(detected: {
     cli,
     stack,
     framework,
+    taskBackend,
     sdd,
     tdd,
     bestPractices,
@@ -222,6 +235,9 @@ export function parseArgs(argv: string[]): Partial<Answers> {
         break;
       case "--framework":
         args.framework = raw[++i] as Framework;
+        break;
+      case "--task-backend":
+        args.taskBackend = raw[++i] as TaskBackend;
         break;
       case "--sdd":
         args.sdd = true;
