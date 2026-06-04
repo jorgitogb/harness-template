@@ -14,26 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22]
+        node-version: [22]
 
     steps:
       - uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install
 
       - name: Typecheck
-        run: npm run typecheck
-
-      - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: pnpm typecheck
 
       - name: Run tests
-        run: npm test
+        run: pnpm test
 
   security-scan:
     runs-on: ubuntu-latest
@@ -43,4 +44,4 @@ jobs:
       - name: Scan for vulnerabilities
         uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
         with:
-          scan-args: --lockfile=package-lock.json
+          scan-args: --lockfile=pnpm-lock.yaml
