@@ -1,5 +1,11 @@
 # @jorgegb/harness-init
 
+## 0.3.1
+
+### Patch Changes
+
+- [`3e8f260`](https://github.com/jorgitogb/harness-template/commit/3e8f260594dc3ae16af62d25f6c562bb50cc4c23) Thanks [@jorgitogb](https://github.com/jorgitogb)! - Switch Python init checks from pip to uv, Node init checks from npm/npx to pnpm
+
 ## 0.3.0
 
 ### Minor Changes

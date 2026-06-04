@@ -1,6 +1,6 @@
 {
   "name": "@jorgegb/harness-init",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Bootstrap an AI dev workspace with SDD, TDD, and agent roles on any project",
   "bin": {
     "harness-init": "dist/cli.js"
