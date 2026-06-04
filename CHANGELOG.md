@@ -1,5 +1,19 @@
 # @jorgegb/harness-init
 
+## 0.3.0
+
+### Minor Changes
+
+- Add --task-backend CLI option (json|linear|notion) with AGENTS.md note
+
+  Fix agent and ground-rules multiselect defaults (use initialValues instead of per-option initial)
+
+  Add Context7 + Engram recommended tools to opencode AGENTS.md appendix
+
+  Add end-of-run CTA: review files + contribution link
+
+  Implement --seed-demo (hello_harness demo feature)
+
 ## 0.2.3
 
 ### Patch Changes
