@@ -1,5 +1,14 @@
 # @jorgegb/harness-init
 
+## 0.2.3
+
+### Patch Changes
+
+- fix: set execute permission on init.sh after writing
+
+  Generated init.sh was missing +x permission, causing
+  "permission denied: ./init.sh" on Unix systems.
+
 ## 0.2.2
 
 ### Patch Changes

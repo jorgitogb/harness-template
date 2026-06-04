@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, chmodSync, existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { FileAction } from "./plan.js";
 
@@ -47,6 +47,9 @@ export function applyPlan(
           result.appended.push(action.path);
         } else {
           writeFileSync(fullPath, action.content, "utf-8");
+          if (action.path.endsWith(".sh")) {
+            chmodSync(fullPath, 0o755);
+          }
           result.written.push(action.path);
         }
       } catch (err) {
