@@ -47,12 +47,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jorgegb/harness-template.git"
+    "url": "https://github.com/jorgitogb/harness-template.git"
   },
   "bugs": {
-    "url": "https://github.com/jorgegb/harness-template/issues"
+    "url": "https://github.com/jorgitogb/harness-template/issues"
   },
-  "homepage": "https://github.com/jorgegb/harness-template#readme",
+  "homepage": "https://github.com/jorgitogb/harness-template#readme",
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.0",
