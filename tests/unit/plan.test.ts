@@ -121,7 +121,7 @@ describe("buildPlan", () => {
     const plan = buildPlan(baseAnswers({ stack: "node", framework: "react" }), TMP);
     const initShFile = plan.find((f) => f.path === "init.sh");
     expect(initShFile).toBeDefined();
-    expect(initShFile!.content).toContain("npx tsc");
+    expect(initShFile!.content).toContain("pnpm tsc");
     rmSync(TMP, { recursive: true, force: true });
   });
 

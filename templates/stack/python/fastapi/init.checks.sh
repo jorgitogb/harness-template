@@ -5,14 +5,14 @@ if python3 -c "import fastapi" 2>/dev/null; then
   FASTAPI_VER=$(python3 -c "import fastapi; print(fastapi.__version__)" 2>/dev/null || echo "unknown")
   ok "fastapi -> $FASTAPI_VER"
 else
-  warn "fastapi not installed — run 'pip install fastapi'"
+  warn "fastapi not installed — run 'uv add fastapi'"
 fi
 
 # Uvicorn available (ASGI server)
 if command -v uvicorn >/dev/null 2>&1; then
   ok "uvicorn -> $(uvicorn --version 2>&1 || echo 'installed')"
 else
-  warn "uvicorn not found — run 'pip install uvicorn[standard]'"
+  warn "uvicorn not found — run 'uv add uvicorn[standard]'"
 fi
 
 # Pydantic available

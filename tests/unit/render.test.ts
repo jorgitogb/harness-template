@@ -60,7 +60,7 @@ describe("getStackVars", () => {
     const vars = getStackVars("node");
     expect(vars.STACK_CONVENTIONS).toContain("Prettier");
     expect(vars.RUNTIME_CHECKS).toContain("node");
-    expect(vars.TEST_COMMAND).toContain("npm test");
+    expect(vars.TEST_COMMAND).toContain("pnpm test");
   });
 
   it("returns Go stack vars", () => {
@@ -89,7 +89,7 @@ describe("getStackVars", () => {
     expect(vars.STACK_CONVENTIONS).toContain("Components");
     expect(vars.STACK_CONVENTIONS).toContain("PascalCase");
     expect(vars.STACK_CONVENTIONS).toContain("@testing-library/react");
-    expect(vars.TEST_COMMAND).toContain("npm test");
+    expect(vars.TEST_COMMAND).toContain("pnpm test");
   });
 
   it("merges Astro conventions when framework=astro", () => {
@@ -105,7 +105,7 @@ describe("getStackVars", () => {
     const vars = getStackVars("node", "none");
     expect(vars.STACK_CONVENTIONS).toContain("Prettier");
     expect(vars.STACK_CONVENTIONS).not.toContain("Components");
-    expect(vars.TEST_COMMAND).toContain("npm test");
+    expect(vars.TEST_COMMAND).toContain("pnpm test");
     expect(vars.TEST_COMMAND).not.toContain("astro check");
   });
 

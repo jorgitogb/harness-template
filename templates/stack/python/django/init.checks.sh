@@ -5,7 +5,7 @@ if python3 -c "import django" 2>/dev/null; then
   DJANGO_VER=$(python3 -c "import django; print(django.get_version())" 2>/dev/null || echo "unknown")
   ok "django -> $DJANGO_VER"
 else
-  warn "django not installed — run 'pip install django'"
+  warn "django not installed — run 'uv add django'"
 fi
 
 # manage.py exists

@@ -46,7 +46,7 @@ export function getStackVars(stack: string, framework: Framework = "none"): Pick
 
   const testCommands: Record<string, string> = {
     python: 'if command -v pytest >/dev/null 2>&1; then\n  if pytest -q 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "pytest not installed — skipping tests"\nfi',
-    node: 'if [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    node: 'if [ -f "package.json" ]; then\n  if pnpm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
     go: 'if go test ./... 2>&1; then\n  ok "All tests pass"\nelse\n  fail "Some tests failed"\n  EXIT_CODE=1\nfi',
     rust: 'if cargo test 2>&1; then\n  ok "All tests pass"\nelse\n  fail "Some tests failed"\n  EXIT_CODE=1\nfi',
     generic: 'warn "No test command configured — add your test runner here"',
@@ -67,9 +67,9 @@ export function getStackVars(stack: string, framework: Framework = "none"): Pick
   }
 
   const frameworkTestCommands: Record<Framework, string> = {
-    astro: 'if command -v npx >/dev/null 2>&1 && npx astro --version >/dev/null 2>&1; then\n  if npx astro check 2>&1; then\n    ok "Astro type checks pass"\n  else\n    fail "Astro type checks failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "astro CLI not found — skipping type check"\nfi\n\nif [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
-    react: 'if [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
-    next: 'if [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    astro: 'if command -v pnpm >/dev/null 2>&1 && pnpm astro --version >/dev/null 2>&1; then\n  if pnpm astro check 2>&1; then\n    ok "Astro type checks pass"\n  else\n    fail "Astro type checks failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "astro CLI not found — skipping type check"\nfi\n\nif [ -f "package.json" ]; then\n  if pnpm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    react: 'if [ -f "package.json" ]; then\n  if pnpm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    next: 'if [ -f "package.json" ]; then\n  if pnpm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
     fastapi: 'if command -v pytest >/dev/null 2>&1; then\n  if pytest -q 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "pytest not installed — skipping tests"\nfi',
     django: 'if command -v pytest >/dev/null 2>&1; then\n  if pytest -q 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "pytest not installed — skipping tests"\nfi',
     flask: 'if command -v pytest >/dev/null 2>&1; then\n  if pytest -q 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "pytest not installed — skipping tests"\nfi',

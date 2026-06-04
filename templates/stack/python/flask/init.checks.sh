@@ -5,14 +5,14 @@ if python3 -c "import flask" 2>/dev/null; then
   FLASK_VER=$(python3 -c "import flask; print(flask.__version__)" 2>/dev/null || echo "unknown")
   ok "flask -> $FLASK_VER"
 else
-  warn "flask not installed — run 'pip install flask'"
+  warn "flask not installed — run 'uv add flask'"
 fi
 
 # Flask CLI available
 if command -v flask >/dev/null 2>&1; then
   ok "flask CLI available"
 else
-  warn "flask CLI not found — run 'pip install flask'"
+  warn "flask CLI not found — run 'uv add flask'"
 fi
 
 # Application factory exists
