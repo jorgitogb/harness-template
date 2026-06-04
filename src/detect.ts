@@ -3,10 +3,13 @@ import { join, basename } from "node:path";
 
 export type Stack = "python" | "node" | "go" | "rust" | "generic";
 
+export type Framework = "none" | "react" | "astro" | "next";
+
 export type Cli = "opencode" | "claude" | "codex";
 
 export interface DetectResult {
   stack: Stack;
+  framework: Framework;
   cli: Cli | null;
   harnessExists: boolean;
   projectName: string;
@@ -67,9 +70,25 @@ export function detectGitRepo(cwd: string): boolean {
   return existsSync(join(cwd, ".git"));
 }
 
+export function detectFramework(cwd: string): Framework {
+  const pkgPath = join(cwd, "package.json");
+  if (!existsSync(pkgPath)) return "none";
+  try {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    if ("astro" in deps) return "astro";
+    if ("next" in deps) return "next";
+    if ("react" in deps) return "react";
+  } catch {
+    // ignore
+  }
+  return "none";
+}
+
 export function detect(cwd: string): DetectResult {
   return {
     stack: detectStack(cwd),
+    framework: detectFramework(cwd),
     cli: detectCli(cwd),
     harnessExists: detectHarness(cwd),
     projectName: detectProjectName(cwd),

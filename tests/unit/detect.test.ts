@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { detectStack, detectCli, detectHarness, detectProjectName, detectGitRepo, detect } from "../../src/detect.js";
+import { detectStack, detectCli, detectHarness, detectProjectName, detectGitRepo, detectFramework, detect } from "../../src/detect.js";
 
 const TMP = join(import.meta.dirname, "../tmp-detect");
 
@@ -132,9 +132,66 @@ describe("detect (full)", () => {
     writeFileSync(join(TMP, "package.json"), JSON.stringify({ name: "test-app" }));
     const result = detect(TMP);
     expect(result.stack).toBe("node");
+    expect(result.framework).toBe("none");
     expect(result.projectName).toBe("test-app");
     expect(result.isGitRepo).toBe(true);
     expect(result.harnessExists).toBe(false);
+    cleanup();
+  });
+
+  it("detects React framework from dependencies", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { react: "^18.2.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("react");
+    cleanup();
+  });
+
+  it("detects Astro framework from dependencies", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { astro: "^4.0.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("astro");
+    cleanup();
+  });
+
+  it("detects Next.js framework from dependencies", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { next: "^14.0.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("next");
+    cleanup();
+  });
+
+  it("detects framework from devDependencies", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ devDependencies: { react: "^18.2.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("react");
+    cleanup();
+  });
+
+  it("prefers astro over react when both present", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { astro: "^4.0.0", react: "^18.2.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("astro");
+    cleanup();
+  });
+
+  it("prefers next over react when both present", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { next: "^14.0.0", react: "^18.2.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("next");
+    cleanup();
+  });
+
+  it("returns none when no framework deps found", () => {
+    setup(["package.json"]);
+    writeFileSync(join(TMP, "package.json"), JSON.stringify({ dependencies: { express: "^4.18.0" } }));
+    const result = detect(TMP);
+    expect(result.framework).toBe("none");
     cleanup();
   });
 });

@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import type { Stack, Cli } from "./detect.js";
+import type { Stack, Cli, Framework } from "./detect.js";
 import type { Answers } from "./plan.js";
 
 const ALL_AGENTS = [
@@ -25,6 +25,7 @@ const ALL_RULES = [
 
 export async function promptWizard(detected: {
   stack: Stack;
+  framework: Framework;
   cli: Cli | null;
   harnessExists: boolean;
   projectName: string;
@@ -61,6 +62,23 @@ export async function promptWizard(detected: {
     initialValue: detected.stack,
   });
   if (p.isCancel(stack)) process.exit(0);
+
+  // Framework (only when stack is Node)
+  let framework: Framework = "none";
+  if (stack === "node") {
+    const frameworkSelect = await p.select({
+      message: "Which framework?",
+      options: [
+        { value: "none" as Framework, label: "None (generic Node / TypeScript)" },
+        { value: "react" as Framework, label: "React" },
+        { value: "astro" as Framework, label: "Astro" },
+        { value: "next" as Framework, label: "Next.js" },
+      ],
+      initialValue: detected.framework || "none",
+    });
+    if (p.isCancel(frameworkSelect)) process.exit(0);
+    framework = frameworkSelect;
+  }
 
   // Features
   const sdd = await p.confirm({
@@ -160,6 +178,7 @@ export async function promptWizard(detected: {
   return {
     cli,
     stack,
+    framework,
     sdd,
     tdd,
     bestPractices,
@@ -187,6 +206,9 @@ export function parseArgs(argv: string[]): Partial<Answers> {
         break;
       case "--stack":
         args.stack = raw[++i] as Stack;
+        break;
+      case "--framework":
+        args.framework = raw[++i] as Framework;
         break;
       case "--sdd":
         args.sdd = true;

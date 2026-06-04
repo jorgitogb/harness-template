@@ -81,4 +81,30 @@ describe("getStackVars", () => {
     expect(vars.STACK_CONVENTIONS).toContain("Choose your conventions");
     expect(vars.TEST_COMMAND).toContain("warn");
   });
+
+  it("merges React conventions when framework=react", () => {
+    const vars = getStackVars("node", "react");
+    expect(vars.STACK_CONVENTIONS).toContain("Prettier");
+    expect(vars.STACK_CONVENTIONS).toContain("Components");
+    expect(vars.STACK_CONVENTIONS).toContain("PascalCase");
+    expect(vars.STACK_CONVENTIONS).toContain("@testing-library/react");
+    expect(vars.TEST_COMMAND).toContain("npm test");
+  });
+
+  it("merges Astro conventions when framework=astro", () => {
+    const vars = getStackVars("node", "astro");
+    expect(vars.STACK_CONVENTIONS).toContain("Prettier");
+    expect(vars.STACK_CONVENTIONS).toContain(".astro");
+    expect(vars.STACK_CONVENTIONS).toContain("Islands");
+    expect(vars.STACK_CONVENTIONS).toContain("Content Collections");
+    expect(vars.TEST_COMMAND).toContain("astro check");
+  });
+
+  it("returns generic Node vars when framework=none", () => {
+    const vars = getStackVars("node", "none");
+    expect(vars.STACK_CONVENTIONS).toContain("Prettier");
+    expect(vars.STACK_CONVENTIONS).not.toContain("Components");
+    expect(vars.TEST_COMMAND).toContain("npm test");
+    expect(vars.TEST_COMMAND).not.toContain("astro check");
+  });
 });

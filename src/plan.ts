@@ -1,12 +1,13 @@
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import type { Stack, Cli } from "./detect.js";
+import type { Stack, Cli, Framework } from "./detect.js";
 import type { RenderVars } from "./render.js";
 import { renderTemplate, getStackVars, loadTemplate } from "./render.js";
 
 export interface Answers {
   cli: Cli;
   stack: Stack;
+  framework: Framework;
   sdd: boolean;
   tdd: boolean;
   bestPractices: boolean;
@@ -32,7 +33,7 @@ const SHARED_AGENTS = ["leader", "spec-author", "implementer", "reviewer"];
 const EXTRA_AGENTS = ["security-auditor", "doc-writer", "perf-analyzer"];
 
 function buildRenderVars(answers: Answers): RenderVars {
-  const stackVars = getStackVars(answers.stack);
+  const stackVars = getStackVars(answers.stack, answers.framework);
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
@@ -113,7 +114,15 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   }
 
   // --- Stack-specific ---
-  const stackGitignore = loadTemplate(`stack/${answers.stack}/.gitignore`);
+  let stackGitignore = loadTemplate(`stack/${answers.stack}/.gitignore`);
+  if (answers.framework !== "none") {
+    try {
+      const fwGitignore = loadTemplate(`stack/${answers.stack}/${answers.framework}/.gitignore`);
+      stackGitignore = stackGitignore + "\n" + fwGitignore;
+    } catch {
+      // framework .gitignore is optional
+    }
+  }
   const gitignoreContent = exists(".gitignore")
     ? mergeGitignore(readFileSync(join(cwd, ".gitignore"), "utf-8"), stackGitignore)
     : stackGitignore;

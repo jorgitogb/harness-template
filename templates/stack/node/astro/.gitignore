@@ -1,0 +1,5 @@
+# Astro-specific
+dist/
+.astro/
+.env
+.env.local

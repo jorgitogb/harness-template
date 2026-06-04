@@ -10,6 +10,7 @@ function baseAnswers(overrides: Partial<Answers> = {}): Answers {
   return {
     cli: "opencode",
     stack: "python",
+    framework: "none",
     sdd: true,
     tdd: true,
     bestPractices: true,
@@ -88,6 +89,66 @@ describe("buildPlan", () => {
     // Build second plan — should skip existing
     const plan2 = buildPlan(baseAnswers(), TMP);
     expect(plan2.length).toBe(0);
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes React conventions in conventions.md when framework=react", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "react" }), TMP);
+    const conventionsFile = plan.find((f) => f.path === "docs/conventions.md");
+    expect(conventionsFile).toBeDefined();
+    expect(conventionsFile!.content).toContain("Prettier");
+    expect(conventionsFile!.content).toContain("Components");
+    expect(conventionsFile!.content).toContain("PascalCase");
+    expect(conventionsFile!.content).toContain("@testing-library/react");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Astro conventions in conventions.md when framework=astro", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "astro" }), TMP);
+    const conventionsFile = plan.find((f) => f.path === "docs/conventions.md");
+    expect(conventionsFile).toBeDefined();
+    expect(conventionsFile!.content).toContain("Prettier");
+    expect(conventionsFile!.content).toContain(".astro");
+    expect(conventionsFile!.content).toContain("Islands");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes React init checks when framework=react", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "react" }), TMP);
+    const initShFile = plan.find((f) => f.path === "init.sh");
+    expect(initShFile).toBeDefined();
+    expect(initShFile!.content).toContain("npx tsc");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Astro init checks when framework=astro", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "astro" }), TMP);
+    const initShFile = plan.find((f) => f.path === "init.sh");
+    expect(initShFile).toBeDefined();
+    expect(initShFile!.content).toContain("astro");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes React gitignore entries when framework=react", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "react" }), TMP);
+    const gitignoreFile = plan.find((f) => f.path === ".gitignore");
+    expect(gitignoreFile).toBeDefined();
+    expect(gitignoreFile!.content).toContain("build/");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes Astro gitignore entries when framework=astro", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "astro" }), TMP);
+    const gitignoreFile = plan.find((f) => f.path === ".gitignore");
+    expect(gitignoreFile).toBeDefined();
+    expect(gitignoreFile!.content).toContain("dist/");
+    expect(gitignoreFile!.content).toContain(".astro/");
     rmSync(TMP, { recursive: true, force: true });
   });
 });

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { Framework } from "./detect.js";
 
 const TEMPLATES_DIR = join(import.meta.dirname, "../templates");
 
@@ -30,7 +31,16 @@ export function renderTemplate(relativePath: string, vars: RenderVars): string {
   return render(raw, vars);
 }
 
-export function getStackVars(stack: string): Pick<RenderVars, "STACK_CONVENTIONS" | "RUNTIME_CHECKS" | "TEST_COMMAND"> {
+function loadFrameworkTemplate(stack: string, framework: Framework, filename: string): string | null {
+  if (framework === "none") return null;
+  try {
+    return loadTemplate(`stack/${stack}/${framework}/${filename}`);
+  } catch {
+    return null;
+  }
+}
+
+export function getStackVars(stack: string, framework: Framework = "none"): Pick<RenderVars, "STACK_CONVENTIONS" | "RUNTIME_CHECKS" | "TEST_COMMAND"> {
   const checks = loadTemplate(`stack/${stack}/init.checks.sh`);
   const conventions = loadTemplate(`stack/${stack}/conventions.md`);
 
@@ -42,11 +52,34 @@ export function getStackVars(stack: string): Pick<RenderVars, "STACK_CONVENTIONS
     generic: 'warn "No test command configured — add your test runner here"',
   };
 
-  const testCommand = testCommands[stack] ?? 'warn "No test command configured — add your test runner here"';
+  let finalConventions = conventions;
+  let finalChecks = checks;
+  let finalTestCommand = testCommands[stack] ?? 'warn "No test command configured — add your test runner here"';
+
+  const fwConventions = loadFrameworkTemplate(stack, framework, "conventions.md");
+  if (fwConventions) {
+    finalConventions = conventions + "\n\n" + fwConventions;
+  }
+
+  const fwChecks = loadFrameworkTemplate(stack, framework, "init.checks.sh");
+  if (fwChecks) {
+    finalChecks = checks + "\n" + fwChecks;
+  }
+
+  const frameworkTestCommands: Record<Framework, string> = {
+    astro: 'if command -v npx >/dev/null 2>&1 && npx astro --version >/dev/null 2>&1; then\n  if npx astro check 2>&1; then\n    ok "Astro type checks pass"\n  else\n    fail "Astro type checks failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "astro CLI not found — skipping type check"\nfi\n\nif [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    react: 'if [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    next: 'if [ -f "package.json" ]; then\n  if npm test 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "No package.json — skipping tests"\nfi',
+    none: finalTestCommand,
+  };
+
+  if (framework !== "none" && frameworkTestCommands[framework]) {
+    finalTestCommand = frameworkTestCommands[framework];
+  }
 
   return {
-    STACK_CONVENTIONS: conventions,
-    RUNTIME_CHECKS: checks,
-    TEST_COMMAND: testCommand,
+    STACK_CONVENTIONS: finalConventions,
+    RUNTIME_CHECKS: finalChecks,
+    TEST_COMMAND: finalTestCommand,
   };
 }
