@@ -8,7 +8,7 @@ describe("loadTemplate", () => {
   });
 
   it("loads stack-specific template", () => {
-    const content = loadTemplate("stack/python/.gitignore");
+    const content = loadTemplate("stack/python/.gitignore.txt");
     expect(content).toContain("__pycache__");
   });
 });

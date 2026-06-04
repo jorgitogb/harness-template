@@ -1,5 +1,15 @@
 # @jorgegb/harness-init
 
+## 0.2.2
+
+### Patch Changes
+
+- fix: include stack .gitignore templates in npm package
+
+  npm automatically excludes all .gitignore files from published packages.
+  Renamed stack template .gitignore files to .gitignore.txt so they are
+  included in the tarball, and updated loadTemplate calls accordingly.
+
 ## 0.2.1
 
 ### Patch Changes

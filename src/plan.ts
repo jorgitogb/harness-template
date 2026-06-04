@@ -114,10 +114,10 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   }
 
   // --- Stack-specific ---
-  let stackGitignore = loadTemplate(`stack/${answers.stack}/.gitignore`);
+  let stackGitignore = loadTemplate(`stack/${answers.stack}/.gitignore.txt`);
   if (answers.framework !== "none") {
     try {
-      const fwGitignore = loadTemplate(`stack/${answers.stack}/${answers.framework}/.gitignore`);
+      const fwGitignore = loadTemplate(`stack/${answers.stack}/${answers.framework}/.gitignore.txt`);
       stackGitignore = stackGitignore + "\n" + fwGitignore;
     } catch {
       // framework .gitignore is optional

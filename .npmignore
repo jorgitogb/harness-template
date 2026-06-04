@@ -1,11 +1,10 @@
 # Source (not needed in published package)
 src/
-templates/
 tests/
 docs/
 content/
 .github/
-.gitignore
+/.gitignore
 tsconfig.json
 vitest.config.ts
 pnpm-lock.yaml
