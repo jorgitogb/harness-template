@@ -197,6 +197,25 @@ describe("buildPlan", () => {
     rmSync(TMP, { recursive: true, force: true });
   });
 
+  it("includes linear MCP server in opencode.jsonc", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const configFile = plan.find((f) => f.path === "opencode.jsonc");
+    expect(configFile).toBeDefined();
+    expect(configFile!.content).toContain("mcpServers");
+    expect(configFile!.content).toContain("mcp.linear.app");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("excludes mcpServers from opencode.jsonc when taskBackend is json", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const configFile = plan.find((f) => f.path === "opencode.jsonc");
+    expect(configFile).toBeDefined();
+    expect(configFile!.content).not.toContain("mcpServers");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
   it("includes notion task-backend note in AGENTS.md", () => {
     mkdirSync(TMP, { recursive: true });
     const plan = buildPlan(baseAnswers({ taskBackend: "notion" }), TMP);

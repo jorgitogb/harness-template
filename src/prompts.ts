@@ -117,7 +117,7 @@ export async function promptWizard(detected: {
     message: "Task tracking backend?",
     options: [
       { value: "json" as TaskBackend, label: "Local JSON (feature_list.json + progress/)" },
-      { value: "linear" as TaskBackend, label: "Linear (external — doc only for now)" },
+      { value: "linear" as TaskBackend, label: "Linear (MCP)" },
       { value: "notion" as TaskBackend, label: "Notion (external — doc only for now)" },
     ],
     initialValue: "json" as TaskBackend,

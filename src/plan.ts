@@ -48,11 +48,18 @@ function buildRenderVars(answers: Answers): RenderVars {
     linear: "Source of truth: Linear. Sync changes to feature_list.json",
     notion: "Source of truth: Notion. Sync changes to feature_list.json",
   };
+  const mcpServers: Record<TaskBackend, string> = {
+    json: "",
+    linear:
+      ',\n  "mcpServers": {\n    "linear": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"]\n    }\n  }',
+    notion: "",
+  };
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
     DEMO_FEATURE: answers.seedDemo ? demoEntry : "",
     TASK_BACKEND_NOTE: taskBackendNotes[answers.taskBackend],
+    MCP_SERVERS: mcpServers[answers.taskBackend],
     ...stackVars,
   };
 }
