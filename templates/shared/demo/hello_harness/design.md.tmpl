@@ -1,0 +1,18 @@
+## Files
+
+- `src/hello_harness.sh` — Main script entry point.
+- `tests/test_hello_harness.sh` — Shell-based tests (via bats or shunit2).
+
+## Approach
+
+- Single POSIX-compatible shell script.
+- Parse flags with a simple `case` loop.
+- Default name: "Harness".
+- Print usage with a `usage()` function.
+
+## Rejected alternatives
+
+- **Python/Node script** — Introduces language dependency. Shell keeps the
+  demo accessible to any project regardless of stack.
+- **Inline in init.sh** — Would bloat the verification script. Keep
+  hello_harness as a separate entry point.

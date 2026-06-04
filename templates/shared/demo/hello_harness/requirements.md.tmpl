@@ -1,0 +1,15 @@
+## R1
+WHEN the user runs `./init.sh`, the system MUST print "Hello, Harness!"
+to stdout and exit with code 0.
+
+## R2
+WHEN the user runs `./init.sh --name <name>`, the system MUST print
+"Hello, <name>!" instead of the default greeting.
+
+## R3
+IF `./init.sh` is invoked with `--help`, the system MUST print usage
+information listing all available flags.
+
+## R4
+WHILE the `--name` flag is missing, the system MUST use the default
+greeting "Hello, Harness!".

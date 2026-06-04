@@ -152,6 +152,32 @@ describe("buildPlan", () => {
     rmSync(TMP, { recursive: true, force: true });
   });
 
+  it("includes demo spec files when seedDemo is true", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ seedDemo: true }), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).toContain("specs/hello_harness/requirements.md");
+    expect(paths).toContain("specs/hello_harness/design.md");
+    expect(paths).toContain("specs/hello_harness/tasks.md");
+    const featureListFile = plan.find((f) => f.path === "feature_list.json");
+    expect(featureListFile).toBeDefined();
+    expect(featureListFile!.content).toContain("hello_harness");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("excludes demo spec files when seedDemo is false", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ seedDemo: false }), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).not.toContain("specs/hello_harness/requirements.md");
+    expect(paths).not.toContain("specs/hello_harness/design.md");
+    expect(paths).not.toContain("specs/hello_harness/tasks.md");
+    const featureListFile = plan.find((f) => f.path === "feature_list.json");
+    expect(featureListFile).toBeDefined();
+    expect(featureListFile!.content).not.toContain("hello_harness");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
   it("includes FastAPI conventions when framework=fastapi", () => {
     mkdirSync(TMP, { recursive: true });
     const plan = buildPlan(baseAnswers({ stack: "python", framework: "fastapi" }), TMP);

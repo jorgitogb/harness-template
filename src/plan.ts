@@ -34,9 +34,16 @@ const EXTRA_AGENTS = ["security-auditor", "doc-writer", "perf-analyzer"];
 
 function buildRenderVars(answers: Answers): RenderVars {
   const stackVars = getStackVars(answers.stack, answers.framework);
+  const demoEntry = JSON.stringify({
+    name: "hello_harness",
+    description: "A starter feature that validates the SDD pipeline works end-to-end",
+    sdd: true,
+    status: "pending",
+  }, null, 2);
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
+    DEMO_FEATURE: answers.seedDemo ? demoEntry : "",
     ...stackVars,
   };
 }
@@ -77,6 +84,14 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
 
   // --- Specs placeholder ---
   files.push(action(resolve("specs/.gitkeep"), loadTemplate("shared/specs/.gitkeep")));
+
+  // --- Demo feature ---
+  if (answers.seedDemo) {
+    const name = "hello_harness";
+    files.push(action(resolve(`specs/${name}/requirements.md`), renderTemplate(`shared/demo/${name}/requirements.md.tmpl`, vars)));
+    files.push(action(resolve(`specs/${name}/design.md`), renderTemplate(`shared/demo/${name}/design.md.tmpl`, vars)));
+    files.push(action(resolve(`specs/${name}/tasks.md`), renderTemplate(`shared/demo/${name}/tasks.md.tmpl`, vars)));
+  }
 
   // --- Docs ---
   files.push(action(resolve("docs/architecture.md"), renderTemplate("shared/docs/architecture.md.tmpl", vars)));
