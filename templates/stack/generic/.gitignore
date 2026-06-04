@@ -1,0 +1,30 @@
+# Build
+/dist/
+/build/
+/bin/
+/out/
+
+# Dependencies
+/node_modules/
+/vendor/
+/target/
+/__pycache__/
+
+# Env
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+/coverage/
+/.pytest_cache/
+/.nyc_output/

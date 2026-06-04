@@ -1,0 +1,40 @@
+# Conventions
+
+> Style, naming, and formatting rules for this project.
+
+## Language
+
+{{STACK_CONVENTIONS}}
+
+## Formatting
+
+- Indent with spaces (2 for YAML/JSON, 4 for Python, 2 for TypeScript).
+- Trailing commas in multi-line arrays and objects.
+- Single quotes for strings in Python, double quotes in TypeScript.
+- No semicolons in TypeScript (Prettier default).
+
+## Comments
+
+- One-line comments for "why", not "what".
+- No comment blocks longer than 3 lines.
+- TODO format: `// TODO(username): description — ticket/issue`.
+
+## Imports
+
+- Group: stdlib → external → internal. One blank line between groups.
+- No wildcard imports.
+- Sort alphabetically within each group.
+
+## Git
+
+- Conventional commits: `<type>(<scope>): <subject>`.
+- Types: feat, fix, docs, refactor, test, chore, perf, ci, build.
+- Max 72 characters in the subject line.
+- No commits directly to `main`. Use branches and PRs.
+
+## Tests
+
+- One assertion per test where possible.
+- Test names describe behavior: `should <expected> when <condition>`.
+- Use temp directories, not mocks, for filesystem tests.
+- Clean up after tests (temp dirs, env vars).

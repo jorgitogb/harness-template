@@ -1,0 +1,19 @@
+# Source (not needed in published package)
+src/
+templates/
+tests/
+docs/
+content/
+.github/
+.gitignore
+tsconfig.json
+vitest.config.ts
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Keep only what users need
+!dist/
+!README.md
+!LICENSE
+!SECURITY.md

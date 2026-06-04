@@ -1,0 +1,80 @@
+---
+title: "Ship an AI-dev harness in 30 seconds: harness-template"
+description: "A single npx command bootstraps Spec-Driven + Test-Driven workflows on top of any project, with opencode agents ready to go."
+pubDate: 2026-06-04
+tags: ["ai", "opencode", "dx", "sdd", "tdd"]
+---
+
+# Ship an AI-dev harness in 30 seconds
+
+I've been building AI-assisted projects for a while now, and one thing keeps coming up: the AI works great for small tasks, but the moment you need a repeatable workflow — spec → code → review — it falls apart.
+
+So I built `harness-init`. A single command that drops a full AI-dev workspace onto any project.
+
+## The problem
+
+You open your editor, fire up opencode, and ask it to build a feature. It does. But then:
+
+- There's no record of *why* you made certain decisions
+- The code doesn't have tests written before the implementation
+- The reviewer (you) has no checklist to validate against
+- Next session, the AI has no memory of what was approved
+
+You end up doing all the coordination work yourself.
+
+## The solution
+
+```sh
+npx @jorgegb/harness-init
+```
+
+This writes a complete harness to your project:
+
+- **AGENTS.md** — the AI's entry point, with progressive disclosure (it only reads what it needs)
+- **SDD docs** — requirements in EARS notation, design decisions, task checklists
+- **TDD protocol** — red-green-refactor baked into the implementer agent's instructions
+- **Agent roles** — leader, spec-author, implementer, reviewer — each with locked permissions
+- **Ground rules** — one feature at a time, no done without green tests, human approval gate
+- **init.sh** — environment verification that runs before every session
+
+## How it works
+
+The flow is deliberately simple:
+
+1. **Spec phase** — spec-author writes requirements (EARS), design, and tasks
+2. **Human gate** — you review the spec and say "approved"
+3. **Code phase** — implementer follows the tasks, writes tests first, then production code
+4. **Review phase** — reviewer checks traceability: every requirement maps to a test
+
+The human gate is immutable. No agent can skip it.
+
+## Stack-aware
+
+It detects your project automatically:
+
+- Node/TypeScript → `npm test`, eslint rules, `node_modules` in `.gitignore`
+- Python → `pytest`, PEP-8 conventions, `__pycache__` in `.gitignore`
+- Go → `go test`, standard conventions
+- Rust → `cargo test`, standard conventions
+
+Or pick "generic" and fill in your own.
+
+## Built on harness-sdd
+
+The principles come from [harness-sdd](https://github.com/betta-tech/harness-sdd) — a reference repo that demonstrates how to structure a project so AI agents can work autonomously and verifiably.
+
+The key insight from that project: **the repository IS the system**. Files on disk, not chat messages, are the source of truth. Agents write results to `specs/`, `progress/`, and `docs/` — never rely on context windows.
+
+## Security first
+
+The installer runs fully offline. No network requests. No `postinstall` scripts. No files written outside the target directory. Path traversal is blocked. Template injection is prevented by using a non-evaluating renderer.
+
+See the [SECURITY.md](https://github.com/jorgegb/harness-template/blob/main/SECURITY.md) for the full threat model.
+
+## What's next
+
+This is v0. Claude Code and Codex adapters are stubbed out — they're coming. The architecture uses a simple adapter pattern, so adding a new CLI is one new file plus any CLI-specific overlays.
+
+---
+
+*Try it: `npx @jorgegb/harness-init` on your next project. Open an issue if you hit anything weird.*

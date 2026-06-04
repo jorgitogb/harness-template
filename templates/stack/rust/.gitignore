@@ -1,0 +1,20 @@
+# Dependencies
+/target/
+**/*.rs.bk
+
+# Cargo
+Cargo.lock
+
+# Build
+/debug/
+/release/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

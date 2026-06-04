@@ -1,0 +1,67 @@
+{
+  "name": "@jorgegb/harness-init",
+  "version": "0.1.0",
+  "description": "Bootstrap an AI dev workspace with SDD, TDD, and agent roles on any project",
+  "bin": {
+    "harness-init": "dist/cli.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --import tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "release": "changeset publish",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "keywords": [
+    "ai",
+    "sdd",
+    "tdd",
+    "opencode",
+    "agents",
+    "harness",
+    "scaffold",
+    "devtools",
+    "cli"
+  ],
+  "author": "Jorge <me@jorgegb.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jorgegb/harness-template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jorgegb/harness-template/issues"
+  },
+  "homepage": "https://github.com/jorgegb/harness-template#readme",
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.5.1"
+  }
+}

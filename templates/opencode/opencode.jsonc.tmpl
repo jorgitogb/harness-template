@@ -1,0 +1,93 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "build",
+  "agent": {
+    "build": {
+      "description": "Full development agent with all tools enabled",
+      "mode": "primary",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "leader": {
+      "description": "Orchestrator. Decomposes tasks and launches sub-agents. NEVER writes code.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/leader.md}",
+      "permission": {
+        "edit": {
+          "src/**": "deny",
+          "tests/**": "deny"
+        },
+        "bash": "ask"
+      }
+    },
+    "spec-author": {
+      "description": "Writes specifications: requirements (EARS), design, and tasks.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/spec-author.md}",
+      "permission": {
+        "edit": {
+          "src/**": "deny",
+          "tests/**": "deny"
+        },
+        "bash": "deny"
+      }
+    },
+    "implementer": {
+      "description": "Writes code and tests following red-green-refactor.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/implementer.md}",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "reviewer": {
+      "description": "Validates traceability and task completion. Produces review reports.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/reviewer.md}",
+      "permission": {
+        "edit": {
+          "src/**": "deny",
+          "tests/**": "deny"
+        },
+        "bash": "deny"
+      }
+    },
+    "security-auditor": {
+      "description": "Performs security audits and identifies vulnerabilities.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/security-auditor.md}",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "doc-writer": {
+      "description": "Writes and maintains project documentation.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/doc-writer.md}",
+      "permission": {
+        "edit": {
+          "src/**": "deny",
+          "tests/**": "deny"
+        },
+        "bash": "deny"
+      }
+    },
+    "perf-analyzer": {
+      "description": "Analyzes performance implications and suggests optimizations.",
+      "mode": "subagent",
+      "prompt": "{file:./.opencode/agent/perf-analyzer.md}",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    }
+  },
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  }
+}
