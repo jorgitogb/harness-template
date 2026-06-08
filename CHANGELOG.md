@@ -1,5 +1,13 @@
 # @jorgegb/harness-init
 
+## 0.4.0
+
+### Minor Changes
+
+- feat: add stack/framework identity to AGENTS.md and conflict prompt on re-init
+
+  feat: make task backend (json/linear/notion) drive AGENTS.md workflow and agent templates
+
 ## 0.3.1
 
 ### Patch Changes
