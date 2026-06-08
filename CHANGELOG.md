@@ -1,5 +1,19 @@
 # @jorgegb/harness-init
 
+## 0.5.0
+
+### Minor Changes
+
+- feat: add Linear project ID and Notion database support with MCP integration and backend verification
+
+  - Add Linear Project ID prompt and --linear-project-id CLI flag
+  - Add Notion Database ID + API Key prompts and --notion-database-id/--notion-api-key CLI flags
+  - Add Notion MCP server config (mcp-remote https://mcp.notion.com/mcp)
+  - Add notion.md.tmpl documentation with setup guide
+  - Update .env.example.tmpl with LINEAR_PROJECT_ID, NOTION_API_KEY, NOTION_ISSUES_DATABASE_ID
+  - Add backend verification steps to agent templates
+  - Agents now verify project/database exists before creating issues
+
 ## 0.4.0
 
 ### Minor Changes
