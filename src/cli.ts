@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import * as p from "@clack/prompts";
 import { detect } from "./detect.js";
 import { buildPlan, type Answers } from "./plan.js";
 import { applyPlan, printResult } from "./apply.js";
@@ -91,18 +92,40 @@ if (isNonInteractive) {
 // Build and apply plan
 const plan = buildPlan(answers, cwd);
 
-if (plan.length === 0) {
-  console.log("Nothing to do — all files already exist. Use --force to overwrite.");
-  process.exit(0);
-}
+console.log(`\nPlan: ${plan.length} files to process\n`);
 
-console.log(`\nPlan: ${plan.length} files to write\n`);
+let overwriteAll = false;
+let skipAll = false;
 
-const result = await applyPlan(plan, cwd,   async (_path, _existing, _fresh) => {
-  if (answers.force) return "overwrite";
-  // In interactive mode, this would be a prompt. For now, skip.
-  console.log(`  [skip] ${_path} (exists, use --force to overwrite)`);
-  return "skip";
+const result = await applyPlan(plan, cwd, async (path, _existing, _fresh) => {
+  if (answers.force || overwriteAll) return "overwrite";
+  if (skipAll) return "skip";
+
+  if (isNonInteractive) {
+    console.log(`  [skip] ${path} (exists, use --force to overwrite)`);
+    return "skip";
+  }
+
+  const decision = await p.select({
+    message: `"${path}" already exists. What to do?`,
+    options: [
+      { value: "overwrite" as const, label: "Overwrite" },
+      { value: "skip" as const, label: "Skip" },
+      { value: "overwrite-all" as const, label: "Overwrite all" },
+      { value: "skip-all" as const, label: "Skip all" },
+    ],
+  });
+  if (p.isCancel(decision)) process.exit(0);
+
+  if (decision === "overwrite-all") {
+    overwriteAll = true;
+    return "overwrite";
+  }
+  if (decision === "skip-all") {
+    skipAll = true;
+    return "skip";
+  }
+  return decision;
 });
 
 printResult(result);

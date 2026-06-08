@@ -35,6 +35,30 @@ export interface FileAction {
 const SHARED_AGENTS = ["leader", "spec-author", "implementer", "reviewer"];
 const EXTRA_AGENTS = ["security-auditor", "doc-writer", "perf-analyzer"];
 
+function displayStack(stack: Stack): string {
+  const labels: Record<Stack, string> = {
+    python: "Python",
+    node: "Node.js",
+    go: "Go",
+    rust: "Rust",
+    generic: "Generic",
+  };
+  return labels[stack];
+}
+
+function displayFramework(framework: Framework): string {
+  const labels: Record<Framework, string> = {
+    astro: " / Astro",
+    react: " / React",
+    next: " / Next.js",
+    fastapi: " / FastAPI",
+    django: " / Django",
+    flask: " / Flask",
+    none: "",
+  };
+  return labels[framework];
+}
+
 function buildRenderVars(answers: Answers): RenderVars {
   const stackVars = getStackVars(answers.stack, answers.framework);
   const demoEntry = JSON.stringify({
@@ -57,6 +81,8 @@ function buildRenderVars(answers: Answers): RenderVars {
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
+    STACK_DISPLAY: displayStack(answers.stack),
+    FRAMEWORK_DISPLAY: displayFramework(answers.framework),
     DEMO_FEATURE: answers.seedDemo ? demoEntry : "",
     TASK_BACKEND_NOTE: taskBackendNotes[answers.taskBackend],
     MCP_SERVERS: mcpServers[answers.taskBackend],
@@ -159,7 +185,7 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
     : stackGitignore;
   files.push(action(resolve(".gitignore"), gitignoreContent));
 
-  return files.filter((f) => f.exists !== "skip");
+  return files;
 }
 
 function mergeGitignore(existing: string, additions: string): string {

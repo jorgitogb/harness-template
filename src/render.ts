@@ -7,6 +7,8 @@ const TEMPLATES_DIR = join(import.meta.dirname, "../templates");
 export interface RenderVars {
   PROJECT_NAME: string;
   PROJECT_DESCRIPTION: string;
+  STACK_DISPLAY: string;
+  FRAMEWORK_DISPLAY: string;
   STACK_CONVENTIONS: string;
   RUNTIME_CHECKS: string;
   TEST_COMMAND: string;

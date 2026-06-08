@@ -82,14 +82,15 @@ describe("buildPlan", () => {
     rmSync(TMP, { recursive: true, force: true });
   });
 
-  it("marks existing files as skip when force is false", async () => {
+  it("skips existing files when onConflict returns skip", async () => {
     mkdirSync(TMP, { recursive: true });
     const plan1 = buildPlan(baseAnswers(), TMP);
-    // Apply first plan to create files
     await applyPlan(plan1, TMP);
-    // Build second plan — should skip existing
     const plan2 = buildPlan(baseAnswers(), TMP);
-    expect(plan2.length).toBe(0);
+    expect(plan2.length).toBeGreaterThan(0);
+    const result = await applyPlan(plan2, TMP, async () => "skip");
+    expect(result.written.length).toBe(0);
+    expect(result.skipped.length).toBeGreaterThan(0);
     rmSync(TMP, { recursive: true, force: true });
   });
 
@@ -222,6 +223,37 @@ describe("buildPlan", () => {
     const agentsFile = plan.find((f) => f.path === "AGENTS.md");
     expect(agentsFile).toBeDefined();
     expect(agentsFile!.content).toContain("Source of truth: Notion");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes stack identity in AGENTS.md for node/astro", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "node", framework: "astro", projectName: "my-app" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("my-app");
+    expect(agentsFile!.content).toContain("Node.js");
+    expect(agentsFile!.content).toContain("Astro");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes stack identity in AGENTS.md for python (no framework)", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "python", framework: "none", projectName: "my-api" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("my-api");
+    expect(agentsFile!.content).toContain("- **Stack:** Python");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes stack identity in AGENTS.md for go", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ stack: "go", framework: "none", projectName: "my-svc" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("my-svc");
+    expect(agentsFile!.content).toContain("Go");
     rmSync(TMP, { recursive: true, force: true });
   });
 
