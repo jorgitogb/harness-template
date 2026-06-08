@@ -80,3 +80,5 @@ If `docs/learning.md` exists, include a brief explanation after each major decis
 - **What to watch for?** — Highlight the key things the human should pay attention to in this phase.
 
 Keep explanations to 1-2 sentences. The goal is to help the human learn, not to slow down the workflow.
+
+{{AGENT_BACKEND_NOTES}}

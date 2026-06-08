@@ -78,6 +78,35 @@ function buildRenderVars(answers: Answers): RenderVars {
       ',\n  "mcpServers": {\n    "linear": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"]\n    }\n  }',
     notion: "",
   };
+  const backendWorkflow: Record<TaskBackend, string> = {
+    json: "The leader detects the first `pending` feature with `\"sdd\": true`.",
+    linear: "The leader queries Linear via Linear MCP for the first issue with status `pending` and `\"sdd\": true`.",
+    notion: "The leader checks Notion for the first pending feature with `\"sdd\": true`.",
+  };
+  const backendClose: Record<TaskBackend, string> = {
+    json: "If the task is finished: mark `status: \"done\"` in `feature_list.json`.",
+    linear: "If the task is finished: transition the issue to `Done` via Linear MCP, then update `feature_list.json`.",
+    notion: "If the task is finished: mark the task as done in Notion, then update `feature_list.json`.",
+  };
+  const agentBackendNotes: Record<TaskBackend, string> = {
+    json: "",
+    linear: `## Backend: Linear
+
+This project uses Linear for task tracking. The local \`feature_list.json\` is a synced mirror.
+
+- Use Linear MCP to read and transition issue status.
+- After every Linear change, update \`feature_list.json\` to keep local tooling consistent.
+- Set \`LINEAR_API_KEY\` in your environment (see \`docs/linear.md\`).
+`,
+    notion: `## Backend: Notion
+
+This project uses Notion for task tracking. The local \`feature_list.json\` is a synced mirror.
+
+- Check Notion for issue status.
+- Update status in Notion after changes.
+- Keep \`feature_list.json\` in sync for local tooling.
+`,
+  };
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
@@ -86,6 +115,9 @@ function buildRenderVars(answers: Answers): RenderVars {
     DEMO_FEATURE: answers.seedDemo ? demoEntry : "",
     TASK_BACKEND_NOTE: taskBackendNotes[answers.taskBackend],
     MCP_SERVERS: mcpServers[answers.taskBackend],
+    BACKEND_WORKFLOW: backendWorkflow[answers.taskBackend],
+    BACKEND_CLOSE: backendClose[answers.taskBackend],
+    AGENT_BACKEND_NOTES: agentBackendNotes[answers.taskBackend],
     ...stackVars,
   };
 }
@@ -155,13 +187,21 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   // --- Agents ---
   for (const agent of SHARED_AGENTS) {
     if (shouldIncludeAgent(agent, answers.agents)) {
-      files.push(action(resolve(`.opencode/agent/${agent}.md`), loadTemplate(`shared/agents/${agent}.md`)));
+      files.push(action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(`shared/agents/${agent}.md`, vars)));
     }
   }
   for (const agent of EXTRA_AGENTS) {
     if (shouldIncludeAgent(agent, answers.agents)) {
-      files.push(action(resolve(`.opencode/agent/${agent}.md`), loadTemplate(`shared/agents/extras/${agent}.md`)));
+      files.push(action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(`shared/agents/extras/${agent}.md`, vars)));
     }
+  }
+
+  // --- Backend-specific files ---
+  if (answers.taskBackend !== "json") {
+    files.push(action(resolve(".env.example"), renderTemplate("shared/.env.example.tmpl", vars)));
+  }
+  if (answers.taskBackend === "linear") {
+    files.push(action(resolve("docs/linear.md"), renderTemplate("shared/docs/linear.md.tmpl", vars)));
   }
 
   // --- OpenCode adapter ---

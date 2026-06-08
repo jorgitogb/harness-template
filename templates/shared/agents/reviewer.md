@@ -68,3 +68,5 @@ If `docs/learning.md` exists, include a brief explanation after each check:
 - **What would happen without this?** — Briefly explain the consequence of skipping this check.
 
 Keep explanations to 1-2 sentences per check. The goal is to help the human understand the review process, not to slow it down.
+
+{{AGENT_BACKEND_NOTES}}

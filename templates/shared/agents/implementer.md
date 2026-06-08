@@ -68,3 +68,5 @@ If `docs/learning.md` exists, include a brief explanation before each major code
 - **What does this test verify?** — Explain what the test is checking and why it matters.
 
 Keep explanations to 1-2 sentences per decision. The goal is to help the human learn the patterns, not to slow down the implementation.
+
+{{AGENT_BACKEND_NOTES}}

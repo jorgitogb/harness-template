@@ -82,3 +82,5 @@ If `docs/learning.md` exists, include a brief explanation after each major decis
 - **Why this task order?** — Explain the dependency chain and why tasks are ordered this way.
 
 Keep explanations to 1-2 sentences per decision. The goal is to help the human understand the reasoning, not to write a textbook.
+
+{{AGENT_BACKEND_NOTES}}

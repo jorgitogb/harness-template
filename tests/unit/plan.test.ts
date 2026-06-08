@@ -226,6 +226,89 @@ describe("buildPlan", () => {
     rmSync(TMP, { recursive: true, force: true });
   });
 
+  it("includes json workflow step in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("The leader detects the first `pending` feature");
+    expect(agentsFile!.content).toContain("feature_list.json");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes linear workflow step in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("queries Linear via Linear MCP");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes json close step in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("mark `status: \"done\"` in `feature_list.json`");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("includes linear close step in AGENTS.md", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const agentsFile = plan.find((f) => f.path === "AGENTS.md");
+    expect(agentsFile).toBeDefined();
+    expect(agentsFile!.content).toContain("transition the issue to `Done` via Linear MCP");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("adds AGENT_BACKEND_NOTES to leader.md for linear", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const leaderFile = plan.find((f) => f.path === ".opencode/agent/leader.md");
+    expect(leaderFile).toBeDefined();
+    expect(leaderFile!.content).toContain("Backend: Linear");
+    expect(leaderFile!.content).toContain("Linear MCP");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("omits AGENT_BACKEND_NOTES from leader.md for json", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const leaderFile = plan.find((f) => f.path === ".opencode/agent/leader.md");
+    expect(leaderFile).toBeDefined();
+    expect(leaderFile!.content).not.toContain("Backend:");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("creates .env.example and docs/linear.md for linear backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).toContain(".env.example");
+    expect(paths).toContain("docs/linear.md");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("excludes .env.example for json backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).not.toContain(".env.example");
+    expect(paths).not.toContain("docs/linear.md");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("creates .env.example for notion backend (not json)", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "notion" }), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).toContain(".env.example");
+    expect(paths).not.toContain("docs/linear.md");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
   it("includes stack identity in AGENTS.md for node/astro", () => {
     mkdirSync(TMP, { recursive: true });
     const plan = buildPlan(baseAnswers({ stack: "node", framework: "astro", projectName: "my-app" }), TMP);
