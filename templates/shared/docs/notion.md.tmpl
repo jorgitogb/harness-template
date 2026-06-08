@@ -1,0 +1,60 @@
+# Notion Integration
+
+This project uses Notion for task tracking with the Notion MCP server.
+
+## Setup
+
+1. Go to **Settings > Integrations** in Notion: https://www.notion.so/my-integrations
+2. Create a new **internal integration**:
+   - Name: e.g., "Harness AI Agent"
+   - Capabilities: **Read content**, **Update content**, **Insert content**
+   - Copy the **Internal Integration Token** (starts with `ntn_`)
+3. Create a **database** for issues in your Notion workspace:
+   - Create a new page → select "Table - Full page" (or inline)
+   - Add these properties (exact names matter):
+     - `Title` (Title type)
+     - `Status` (Select: Backlog, Todo, In Progress, In Review, Done)
+     - `Priority` (Select: Urgent, High, Medium, Low, None)
+     - `Assignee` (Person)
+     - `Labels` (Multi-select)
+     - `SDD` (Checkbox)
+   - Copy the **Database ID** from the URL:
+     - URL format: `https://notion.so/workspace/<DATABASE_ID>?v=...`
+     - The ID is the 32-char string before `?v=`
+4. Share the database with your integration:
+   - Open the database → **Share** → search for your integration name → **Invite**
+5. Create a `.env` file in the project root (or copy from `.env.example`):
+   ```
+   NOTION_API_KEY=ntn_your_token_here
+   NOTION_ISSUES_DATABASE_ID=your_32_char_database_id
+   ```
+6. The Notion MCP server is configured in `opencode.jsonc`. It uses `mcp-remote` to connect to `https://mcp.notion.com/mcp`.
+
+## How agents interact with Notion
+
+- **Read issues:** Agents query the issues database via Notion MCP to find pending features.
+- **Create issues:** Agents create new pages in the issues database with the required properties.
+- **Transition status:** Agents update the `Status` property to move issues through `Backlog` → `Todo` → `In Progress` → `In Review` → `Done`.
+- **Local mirror:** `feature_list.json` is kept in sync with Notion for local tooling consistency.
+
+## Disk artifacts (always kept)
+
+Even with an external backend, agents always write these files to disk:
+
+| File | Purpose |
+|---|---|
+| `progress/current.md` | Active session state |
+| `progress/history.md` | Append-only log of past sessions |
+| `specs/<name>/` | Requirements, design, tasks (SDD artifacts) |
+| `feature_list.json` | Local mirror of issue status |
+
+## Verification steps (run by agents)
+
+Before creating issues, agents verify:
+
+1. `NOTION_API_KEY` is set in environment
+2. `NOTION_ISSUES_DATABASE_ID` is set in environment
+3. Database exists and is accessible via `retrieve_database` MCP call
+4. Database has required properties (Title, Status, Priority, Assignee, Labels, SDD)
+
+If verification fails, agents will stop and request user action.

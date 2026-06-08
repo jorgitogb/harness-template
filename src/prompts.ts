@@ -184,6 +184,40 @@ export async function promptWizard(detected: {
   });
   if (p.isCancel(projectDescription)) process.exit(0);
 
+  // Task backend specific prompts
+  let linearProjectId = "";
+  let notionDatabaseId = "";
+  let notionApiKey = "";
+
+  if (taskBackend === "linear") {
+    const projectId = await p.text({
+      message: "Linear Project ID? (create in Linear UI first, then paste ID here)",
+      defaultValue: "",
+      placeholder: "e.g. 12345678-abcd-1234-abcd-1234567890ab",
+      validate: (value) => (value ? undefined : "Project ID is required for Linear backend"),
+    });
+    if (p.isCancel(projectId)) process.exit(0);
+    linearProjectId = projectId;
+  } else if (taskBackend === "notion") {
+    const apiKey = await p.text({
+      message: "Notion API Key? (create integration at notion.so/my-integrations)",
+      defaultValue: "",
+      placeholder: "ntn_...",
+      validate: (value) => (value ? undefined : "API Key is required for Notion backend"),
+    });
+    if (p.isCancel(apiKey)) process.exit(0);
+    notionApiKey = apiKey;
+
+    const dbId = await p.text({
+      message: "Notion Issues Database ID? (create a database in Notion first, then paste ID)",
+      defaultValue: "",
+      placeholder: "e.g. 12345678abcd1234abcd1234567890ab",
+      validate: (value) => (value ? undefined : "Database ID is required for Notion backend"),
+    });
+    if (p.isCancel(dbId)) process.exit(0);
+    notionDatabaseId = dbId;
+  }
+
   // Seed demo
   const seedDemo = await p.confirm({
     message: "Seed with a demo feature (hello_harness)?",
@@ -217,6 +251,9 @@ export async function promptWizard(detected: {
     initialCommit,
     force: false,
     learningMode,
+    linearProjectId,
+    notionDatabaseId,
+    notionApiKey,
   };
 }
 
@@ -238,6 +275,15 @@ export function parseArgs(argv: string[]): Partial<Answers> {
         break;
       case "--task-backend":
         args.taskBackend = raw[++i] as TaskBackend;
+        break;
+      case "--linear-project-id":
+        args.linearProjectId = raw[++i];
+        break;
+      case "--notion-database-id":
+        args.notionDatabaseId = raw[++i];
+        break;
+      case "--notion-api-key":
+        args.notionApiKey = raw[++i];
         break;
       case "--sdd":
         args.sdd = true;

@@ -25,27 +25,32 @@ Usage:
   npx @jorgegb/harness-init [options]
 
 Options:
-  --cli <name>          Target AI CLI (opencode, claude, codex) [default: opencode]
-  --stack <name>        Tech stack (python, node, go, rust, generic) [default: auto-detect]
-  --framework <name>    Framework when stack=node|python (react, astro, next, fastapi, django, flask, none) [default: auto-detect]
-  --sdd / --no-sdd      Enable Spec-Driven Development [default: true]
-  --task-backend <val>  Task backend (json, linear, notion) [default: json]
-  --tdd / --no-tdd      Enable Test-Driven Development [default: true]
-  --best-practices      Enable best-practices checks in init.sh [default: true]
+  --cli <name>              Target AI CLI (opencode, claude, codex) [default: opencode]
+  --stack <name>            Tech stack (python, node, go, rust, generic) [default: auto-detect]
+  --framework <name>        Framework when stack=node|python (react, astro, next, fastapi, django, flask, none) [default: auto-detect]
+  --sdd / --no-sdd          Enable Spec-Driven Development [default: true]
+  --task-backend <val>      Task backend (json, linear, notion) [default: json]
+  --linear-project-id <id>  Linear Project ID (required for linear backend)
+  --notion-database-id <id> Notion Issues Database ID (required for notion backend)
+  --notion-api-key <key>    Notion API Key (required for notion backend)
+  --tdd / --no-tdd          Enable Test-Driven Development [default: true]
+  --best-practices          Enable best-practices checks in init.sh [default: true]
   --learning / --no-learning  Learning mode (step-by-step explanations) [default: false]
-  --agents <list>       Comma-separated agent names [default: leader,spec-author,implementer,reviewer]
-  --rules <list|default> Ground rules selection [default: default]
-  --name <name>         Project name [default: directory name]
-  --yes                 Non-interactive mode, accept all defaults
-  --force               Overwrite existing files without prompting
-  --allow-root          Allow running as root
-  --version, -v         Show version
-  --help, -h            Show this help
+  --agents <list>           Comma-separated agent names [default: leader,spec-author,implementer,reviewer]
+  --rules <list|default>    Ground rules selection [default: default]
+  --name <name>             Project name [default: directory name]
+  --yes                     Non-interactive mode, accept all defaults
+  --force                   Overwrite existing files without prompting
+  --allow-root              Allow running as root
+  --version, -v             Show version
+  --help, -h                Show help
 
 Examples:
   npx @jorgegb/harness-init
   npx @jorgegb/harness-init --cli opencode --stack python --sdd --tdd
   npx @jorgegb/harness-init --yes --name my-project
+  npx @jorgegb/harness-init --task-backend linear --linear-project-id <id> --yes
+  npx @jorgegb/harness-init --task-backend notion --notion-database-id <id> --notion-api-key <key> --yes
 `);
   process.exit(0);
 }
@@ -82,6 +87,9 @@ if (isNonInteractive) {
     initialCommit: false,
     force: cliArgs.force ?? false,
     learningMode: cliArgs.learningMode ?? false,
+    linearProjectId: cliArgs.linearProjectId ?? "",
+    notionDatabaseId: cliArgs.notionDatabaseId ?? "",
+    notionApiKey: cliArgs.notionApiKey ?? "",
   };
 } else {
   answers = await promptWizard(detected);

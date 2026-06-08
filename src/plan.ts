@@ -23,6 +23,9 @@ export interface Answers {
   initialCommit: boolean;
   force: boolean;
   learningMode: boolean;
+  linearProjectId: string;
+  notionDatabaseId: string;
+  notionApiKey: string;
 }
 
 export interface FileAction {
@@ -76,7 +79,8 @@ function buildRenderVars(answers: Answers): RenderVars {
     json: "",
     linear:
       ',\n  "mcpServers": {\n    "linear": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"]\n    }\n  }',
-    notion: "",
+    notion:
+      ',\n  "mcpServers": {\n    "notion": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]\n    }\n  }',
   };
   const backendWorkflow: Record<TaskBackend, string> = {
     json: "The leader detects the first `pending` feature with `\"sdd\": true`.",
@@ -97,6 +101,13 @@ This project uses Linear for task tracking. The local \`feature_list.json\` is a
 - Use Linear MCP to read and transition issue status.
 - After every Linear change, update \`feature_list.json\` to keep local tooling consistent.
 - Set \`LINEAR_API_KEY\` in your environment (see \`docs/linear.md\`).
+- Project ID: \`${answers.linearProjectId || "SET_IN_ENV"}\` — verify it exists via \`list_projects\` before creating issues.
+
+## Backend verification (run before creating issues)
+
+1. Check \`LINEAR_PROJECT_ID\` is set in \`.env\`
+2. Call \`list_projects\` via Linear MCP → verify the project ID exists
+3. If missing: STOP and ask human to create project in Linear UI + update \`.env\`
 `,
     notion: `## Backend: Notion
 
@@ -105,6 +116,15 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
 - Check Notion for issue status.
 - Update status in Notion after changes.
 - Keep \`feature_list.json\` in sync for local tooling.
+- Set \`NOTION_API_KEY\` in your environment (see \`docs/notion.md\`).
+- Issues Database ID: \`${answers.notionDatabaseId || "SET_IN_ENV"}\` — verify it exists via \`retrieve_database\` before creating issues.
+
+## Backend verification (run before creating issues)
+
+1. Check \`NOTION_API_KEY\` and \`NOTION_ISSUES_DATABASE_ID\` are set in \`.env\`
+2. Call \`retrieve_database\` via Notion MCP with the database ID → verify it exists
+3. Verify database has required properties: Title, Status, Priority, Assignee, Labels, SDD
+4. If missing: STOP and ask human to create database in Notion + share with integration + update \`.env\`
 `,
   };
   return {
@@ -118,6 +138,9 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
     BACKEND_WORKFLOW: backendWorkflow[answers.taskBackend],
     BACKEND_CLOSE: backendClose[answers.taskBackend],
     AGENT_BACKEND_NOTES: agentBackendNotes[answers.taskBackend],
+    LINEAR_PROJECT_ID: answers.linearProjectId,
+    NOTION_DATABASE_ID: answers.notionDatabaseId,
+    NOTION_API_KEY: answers.notionApiKey,
     ...stackVars,
   };
 }
@@ -202,6 +225,9 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   }
   if (answers.taskBackend === "linear") {
     files.push(action(resolve("docs/linear.md"), renderTemplate("shared/docs/linear.md.tmpl", vars)));
+  }
+  if (answers.taskBackend === "notion") {
+    files.push(action(resolve("docs/notion.md"), renderTemplate("shared/docs/notion.md.tmpl", vars)));
   }
 
   // --- OpenCode adapter ---
