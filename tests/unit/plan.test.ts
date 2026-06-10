@@ -203,18 +203,18 @@ describe("buildPlan", () => {
     const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
     const configFile = plan.find((f) => f.path === "opencode.jsonc");
     expect(configFile).toBeDefined();
-    expect(configFile!.content).toContain("mcpServers");
+    expect(configFile!.content).toContain("mcp");
     expect(configFile!.content).toContain("mcp.linear.app");
     expect(configFile!.content).toContain("LINEAR_API_KEY");
     rmSync(TMP, { recursive: true, force: true });
   });
 
-  it("excludes mcpServers from opencode.jsonc when taskBackend is json", () => {
+  it("excludes mcp from opencode.jsonc when taskBackend is json", () => {
     mkdirSync(TMP, { recursive: true });
     const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
     const configFile = plan.find((f) => f.path === "opencode.jsonc");
     expect(configFile).toBeDefined();
-    expect(configFile!.content).not.toContain("mcpServers");
+    expect(configFile!.content).not.toContain('"mcp"');
     rmSync(TMP, { recursive: true, force: true });
   });
 

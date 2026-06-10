@@ -130,9 +130,9 @@ function buildRenderVars(answers: Answers): RenderVars {
   const mcpServers: Record<TaskBackend, string> = {
     json: "",
     linear:
-      ',\n  "mcpServers": {\n    "linear": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"],\n      "env": {\n        "LINEAR_API_KEY": "${LINEAR_API_KEY}"\n      }\n    }\n  }',
+      ',\n  "mcp": {\n    "linear": {\n      "type": "local",\n      "command": ["npx", "-y", "mcp-remote", "https://mcp.linear.app/mcp"],\n      "environment": {\n        "LINEAR_API_KEY": "${LINEAR_API_KEY}"\n      }\n    }\n  }',
     notion:
-      ',\n  "mcpServers": {\n    "notion": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]\n    }\n  }',
+      ',\n  "mcp": {\n    "notion": {\n      "type": "local",\n      "command": ["npx", "-y", "mcp-remote", "https://mcp.notion.com/mcp"]\n    }\n  }',
   };
   const backendWorkflow: Record<TaskBackend, string> = {
     json: "The leader detects the first `pending` feature with `\"sdd\": true`.",
