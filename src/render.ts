@@ -12,6 +12,18 @@ export interface RenderVars {
   STACK_CONVENTIONS: string;
   RUNTIME_CHECKS: string;
   TEST_COMMAND: string;
+  TASK_BACKEND_NOTE: string;
+  MCP_SERVERS: string;
+  BACKEND_WORKFLOW: string;
+  BACKEND_CLOSE: string;
+  AGENT_BACKEND_NOTES: string;
+  BACKEND_STARTUP_READ: string;
+  BACKEND_FEATURE_SOURCE: string;
+  BACKEND_TRANSITION_INPROGRESS: string;
+  BACKEND_SPEC_READY: string;
+  LINEAR_PROJECT_ID: string;
+  NOTION_DATABASE_ID: string;
+  NOTION_API_KEY: string;
   [key: string]: string;
 }
 

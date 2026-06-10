@@ -64,7 +64,7 @@ A checklist of discrete steps in order. Each task references at least one `R<n>`
 
 ## After writing
 
-1. Change the feature status to `spec_ready` in `feature_list.json`.
+1. {{BACKEND_SPEC_READY}}
 2. Report back with a reference to the files, not the content.
 
 ## What you do NOT do

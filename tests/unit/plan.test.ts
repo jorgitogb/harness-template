@@ -205,6 +205,7 @@ describe("buildPlan", () => {
     expect(configFile).toBeDefined();
     expect(configFile!.content).toContain("mcpServers");
     expect(configFile!.content).toContain("mcp.linear.app");
+    expect(configFile!.content).toContain("LINEAR_API_KEY");
     rmSync(TMP, { recursive: true, force: true });
   });
 
@@ -409,6 +410,62 @@ describe("buildPlan", () => {
     const gitignoreFile = plan.find((f) => f.path === ".gitignore");
     expect(gitignoreFile).toBeDefined();
     expect(gitignoreFile!.content).toContain("db.sqlite3");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("leader.md startup read references Linear MCP for linear backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const leaderFile = plan.find((f) => f.path === ".opencode/agent/leader.md");
+    expect(leaderFile).toBeDefined();
+    expect(leaderFile!.content).toContain("Linear MCP");
+    expect(leaderFile!.content).toContain("Startup protocol");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("leader.md startup read references feature_list.json for json backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const leaderFile = plan.find((f) => f.path === ".opencode/agent/leader.md");
+    expect(leaderFile).toBeDefined();
+    expect(leaderFile!.content).toContain("feature_list.json");
+    expect(leaderFile!.content).not.toContain("Linear MCP");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("leader.md feature source references Linear MCP for linear backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const leaderFile = plan.find((f) => f.path === ".opencode/agent/leader.md");
+    expect(leaderFile).toBeDefined();
+    expect(leaderFile!.content).toContain("Query Linear via Linear MCP");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("leader.md transition in_progress references Linear MCP for linear backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const leaderFile = plan.find((f) => f.path === ".opencode/agent/leader.md");
+    expect(leaderFile).toBeDefined();
+    expect(leaderFile!.content).toContain("Transition the Linear issue");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("spec-author.md spec_ready transition references Linear MCP for linear backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "linear" }), TMP);
+    const specAuthorFile = plan.find((f) => f.path === ".opencode/agent/spec-author.md");
+    expect(specAuthorFile).toBeDefined();
+    expect(specAuthorFile!.content).toContain("Transition the Linear issue to `spec_ready`");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("spec-author.md spec_ready transition references feature_list.json for json backend", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ taskBackend: "json" }), TMP);
+    const specAuthorFile = plan.find((f) => f.path === ".opencode/agent/spec-author.md");
+    expect(specAuthorFile).toBeDefined();
+    expect(specAuthorFile!.content).toContain("feature status to `spec_ready` in `feature_list.json`");
     rmSync(TMP, { recursive: true, force: true });
   });
 });

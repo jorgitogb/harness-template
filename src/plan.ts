@@ -78,7 +78,7 @@ function buildRenderVars(answers: Answers): RenderVars {
   const mcpServers: Record<TaskBackend, string> = {
     json: "",
     linear:
-      ',\n  "mcpServers": {\n    "linear": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"]\n    }\n  }',
+      ',\n  "mcpServers": {\n    "linear": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"],\n      "env": {\n        "LINEAR_API_KEY": "${LINEAR_API_KEY}"\n      }\n    }\n  }',
     notion:
       ',\n  "mcpServers": {\n    "notion": {\n      "command": "npx",\n      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]\n    }\n  }',
   };
@@ -91,6 +91,26 @@ function buildRenderVars(answers: Answers): RenderVars {
     json: "If the task is finished: mark `status: \"done\"` in `feature_list.json`.",
     linear: "If the task is finished: transition the issue to `Done` via Linear MCP, then update `feature_list.json`.",
     notion: "If the task is finished: mark the task as done in Notion, then update `feature_list.json`.",
+  };
+  const backendStartupRead: Record<TaskBackend, string> = {
+    json: "Read `feature_list.json` and `progress/current.md`.",
+    linear: "Read `feature_list.json` (local mirror) and `progress/current.md`. Then query Linear via Linear MCP for the first `pending` issue with `\"sdd\": true`.",
+    notion: "Read `feature_list.json` (local mirror) and `progress/current.md`. Then check Notion for the first `pending` feature with `\"sdd\": true`.",
+  };
+  const backendFeatureSource: Record<TaskBackend, string> = {
+    json: "Look at the status of the first non-done / non-blocked feature in `feature_list.json`.",
+    linear: "Query Linear via Linear MCP for the first `pending` issue with `\"sdd\": true` (then sync status to `feature_list.json` as local mirror).",
+    notion: "Check Notion for the first `pending` feature with `\"sdd\": true` (then sync status to `feature_list.json` as local mirror).",
+  };
+  const backendTransitionInProgress: Record<TaskBackend, string> = {
+    json: "Change the status to `in_progress` in `feature_list.json`.",
+    linear: "Transition the Linear issue to `In Progress` via Linear MCP, then update `feature_list.json` to match.",
+    notion: "Update the Notion task status to `In Progress`, then update `feature_list.json` to match.",
+  };
+  const backendSpecReady: Record<TaskBackend, string> = {
+    json: "Change the feature status to `spec_ready` in `feature_list.json`.",
+    linear: "Transition the Linear issue to `spec_ready` via Linear MCP, then update `feature_list.json` to match.",
+    notion: "Update the Notion task status to `spec_ready`, then update `feature_list.json` to match.",
   };
   const agentBackendNotes: Record<TaskBackend, string> = {
     json: "",
@@ -138,6 +158,10 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
     BACKEND_WORKFLOW: backendWorkflow[answers.taskBackend],
     BACKEND_CLOSE: backendClose[answers.taskBackend],
     AGENT_BACKEND_NOTES: agentBackendNotes[answers.taskBackend],
+    BACKEND_STARTUP_READ: backendStartupRead[answers.taskBackend],
+    BACKEND_FEATURE_SOURCE: backendFeatureSource[answers.taskBackend],
+    BACKEND_TRANSITION_INPROGRESS: backendTransitionInProgress[answers.taskBackend],
+    BACKEND_SPEC_READY: backendSpecReady[answers.taskBackend],
     LINEAR_PROJECT_ID: answers.linearProjectId,
     NOTION_DATABASE_ID: answers.notionDatabaseId,
     NOTION_API_KEY: answers.notionApiKey,

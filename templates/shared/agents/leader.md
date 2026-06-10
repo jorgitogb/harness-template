@@ -15,7 +15,7 @@ You are the leader agent for this repository. Your only job is to decompose and 
 ## Startup protocol
 
 1. Read `AGENTS.md` to orient yourself.
-2. Read `feature_list.json` and `progress/current.md`.
+2. {{BACKEND_STARTUP_READ}}
 3. Run `./init.sh`. If it fails, stop and report.
 
 ## Spec-Driven Development flow (mandatory)
@@ -30,7 +30,7 @@ NEVER skip the spec phase. NEVER launch the implementer if the feature is `pendi
 
 ## How to decompose "implement the next pending feature"
 
-Look at the status of the first non-done / non-blocked feature in `feature_list.json`:
+{{BACKEND_FEATURE_SOURCE}}
 
 ### Case A — status == `pending`
 
@@ -41,7 +41,7 @@ Look at the status of the first non-done / non-blocked feature in `feature_list.
 
 ### Case B — status == `spec_ready` AND the human just approved
 
-1. Change the status to `in_progress` in `feature_list.json`.
+1. {{BACKEND_TRANSITION_INPROGRESS}}
 2. Launch **1 `implementer` sub-agent**, passing it the path `specs/<name>/` as input. The implementer works from the spec, not the original acceptance criteria.
 3. When it finishes → launch **1 `reviewer`** that checks test ↔ requirement traceability and that `tasks.md` is complete.
 
