@@ -1,5 +1,13 @@
 # @jorgegb/harness-init
 
+## 0.5.1
+
+### Patch Changes
+
+- Fix Linear integration — agents now use Linear MCP for task tracking instead of ignoring it
+
+  When task-backend=linear was selected, agent templates (leader.md, spec-author.md) had hardcoded feature_list.json references in their main workflow instructions, causing agents to ignore Linear entirely. Added backend-aware template variables (BACKEND_STARTUP_READ, BACKEND_FEATURE_SOURCE, BACKEND_TRANSITION_INPROGRESS, BACKEND_SPEC_READY) so agents query Linear MCP for pending issues and transition status via Linear.
+
 ## 0.5.0
 
 ### Minor Changes
