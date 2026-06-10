@@ -468,4 +468,43 @@ describe("buildPlan", () => {
     expect(specAuthorFile!.content).toContain("feature status to `spec_ready` in `feature_list.json`");
     rmSync(TMP, { recursive: true, force: true });
   });
+
+  it("opencode.jsonc only includes selected agents", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ agents: ["leader", "spec-author"], cli: "opencode" }), TMP);
+    const configFile = plan.find((f) => f.path === "opencode.jsonc");
+    expect(configFile).toBeDefined();
+    expect(configFile!.content).toContain('"leader"');
+    expect(configFile!.content).toContain('"spec-author"');
+    expect(configFile!.content).not.toContain('"implementer"');
+    expect(configFile!.content).not.toContain('"security-auditor"');
+    const agentFiles = plan.filter((f) => f.path.startsWith(".opencode/agent/"));
+    expect(agentFiles.length).toBe(2);
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("opencode.jsonc excludes unselected agents even when all extras are defined", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ agents: ["leader", "spec-author", "implementer", "reviewer"], cli: "opencode" }), TMP);
+    const configFile = plan.find((f) => f.path === "opencode.jsonc");
+    expect(configFile).toBeDefined();
+    expect(configFile!.content).toContain('"implementer"');
+    expect(configFile!.content).toContain('"reviewer"');
+    expect(configFile!.content).not.toContain('"security-auditor"');
+    expect(configFile!.content).not.toContain('"perf-analyzer"');
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("opencode.jsonc agent entries match created .md files", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ agents: ["leader", "spec-author", "implementer", "reviewer"], cli: "opencode" }), TMP);
+    const agentFiles = plan.filter((f) => f.path.startsWith(".opencode/agent/"));
+    const configFile = plan.find((f) => f.path === "opencode.jsonc");
+    expect(configFile).toBeDefined();
+    for (const agentFile of agentFiles) {
+      const agentName = agentFile.path.replace(".opencode/agent/", "").replace(".md", "");
+      expect(configFile!.content).toContain(`"${agentName}"`);
+    }
+    rmSync(TMP, { recursive: true, force: true });
+  });
 });

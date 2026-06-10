@@ -1,5 +1,18 @@
 # @jorgegb/harness-init
 
+## 0.5.3
+
+### Patch Changes
+
+- Fix opencode crash on startup: only include selected agents in opencode.jsonc
+
+  The opencode.jsonc template hardcoded all 8 agents with {file:./.opencode/agent/\*.md}
+  references, but only selected agents got their .md files created. This caused opencode
+  to fail on startup with "bad file reference" errors for unselected agents.
+
+  Agent definitions are now generated dynamically — only agents the user selected are
+  included in opencode.jsonc, ensuring every file reference has a corresponding .md file.
+
 ## 0.5.2
 
 ### Patch Changes

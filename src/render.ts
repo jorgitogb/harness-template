@@ -21,6 +21,7 @@ export interface RenderVars {
   BACKEND_FEATURE_SOURCE: string;
   BACKEND_TRANSITION_INPROGRESS: string;
   BACKEND_SPEC_READY: string;
+  AGENT_DEFINITIONS: string;
   LINEAR_PROJECT_ID: string;
   NOTION_DATABASE_ID: string;
   NOTION_API_KEY: string;

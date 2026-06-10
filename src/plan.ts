@@ -38,6 +38,58 @@ export interface FileAction {
 const SHARED_AGENTS = ["leader", "spec-author", "implementer", "reviewer"];
 const EXTRA_AGENTS = ["security-auditor", "doc-writer", "perf-analyzer"];
 
+interface AgentMeta {
+  name: string;
+  description: string;
+  mode: string;
+  permission: string;
+}
+
+const ALL_AGENT_META: AgentMeta[] = [
+  {
+    name: "leader",
+    description: "Orchestrator. Decomposes tasks and launches sub-agents. NEVER writes code.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "ask" }),
+  },
+  {
+    name: "spec-author",
+    description: "Writes specifications: requirements (EARS), design, and tasks.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
+  },
+  {
+    name: "implementer",
+    description: "Writes code and tests following red-green-refactor.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: "allow", bash: "allow" }),
+  },
+  {
+    name: "reviewer",
+    description: "Validates traceability and task completion. Produces review reports.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
+  },
+  {
+    name: "security-auditor",
+    description: "Performs security audits and identifies vulnerabilities.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: "deny", bash: "deny" }),
+  },
+  {
+    name: "doc-writer",
+    description: "Writes and maintains project documentation.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
+  },
+  {
+    name: "perf-analyzer",
+    description: "Analyzes performance implications and suggests optimizations.",
+    mode: "subagent",
+    permission: JSON.stringify({ edit: "deny", bash: "deny" }),
+  },
+];
+
 function displayStack(stack: Stack): string {
   const labels: Record<Stack, string> = {
     python: "Python",
@@ -147,6 +199,15 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
 4. If missing: STOP and ask human to create database in Notion + share with integration + update \`.env\`
 `,
   };
+  const selectedAgentEntries = ALL_AGENT_META
+    .filter((a) => shouldIncludeAgent(a.name, answers.agents))
+    .map((a) => {
+      const promptRef = `{file:./.opencode/agent/${a.name}.md}`;
+      return `    "${a.name}": {\n      "description": ${JSON.stringify(a.description)},\n      "mode": "subagent",\n      "prompt": ${JSON.stringify(promptRef)},\n      "permission": ${a.permission}\n    }`;
+    })
+    .join(",\n");
+  const agentDefinitions = selectedAgentEntries ? ",\n" + selectedAgentEntries : "";
+
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
@@ -162,6 +223,7 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
     BACKEND_FEATURE_SOURCE: backendFeatureSource[answers.taskBackend],
     BACKEND_TRANSITION_INPROGRESS: backendTransitionInProgress[answers.taskBackend],
     BACKEND_SPEC_READY: backendSpecReady[answers.taskBackend],
+    AGENT_DEFINITIONS: agentDefinitions,
     LINEAR_PROJECT_ID: answers.linearProjectId,
     NOTION_DATABASE_ID: answers.notionDatabaseId,
     NOTION_API_KEY: answers.notionApiKey,
