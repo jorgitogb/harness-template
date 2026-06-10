@@ -1,5 +1,15 @@
 # @jorgegb/harness-init
 
+## 0.5.2
+
+### Patch Changes
+
+- Fix double prompt for AGENTS.md when re-running harness-init
+
+  When AGENTS.md already existed, the append action triggered a second conflict prompt
+  because both the normal write and the append were marked as `exists: "skip"`.
+  Append actions now always get `exists: "create"` so they proceed without prompting.
+
 ## 0.5.1
 
 ### Patch Changes

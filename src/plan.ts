@@ -182,10 +182,11 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
 
   const action = (path: string, content: string, mode: "normal" | "append" = "normal"): FileAction => {
     const alreadyExists = exists(path);
+    const actionExists = mode === "append" ? "create" : alreadyExists ? (answers.force ? "overwrite" : "skip") : "create";
     return {
       path,
       content,
-      exists: alreadyExists ? (answers.force ? "overwrite" : "skip") : "create",
+      exists: actionExists,
       mode,
     };
   };
