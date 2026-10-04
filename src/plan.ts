@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import type { Stack, Cli, Framework } from "./detect.js";
 import type { RenderVars } from "./render.js";
 import { renderTemplate, getStackVars, loadTemplate } from "./render.js";
+import { agentPermissions, permissionYaml } from "./permissions.js";
 import {
   type ModelProfileName,
   loadProfileTemplate,
@@ -55,52 +56,44 @@ const EXTRA_AGENTS = ["security-auditor", "doc-writer", "perf-analyzer"];
 interface AgentMeta {
   name: string;
   description: string;
-  mode: string;
-  permission: string;
+  mode: "primary" | "subagent";
 }
 
 const ALL_AGENT_META: AgentMeta[] = [
   {
     name: "leader",
     description: "Orchestrator. Decomposes tasks and launches sub-agents. NEVER writes code.",
-    mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "ask" }),
+    mode: "primary",
   },
   {
     name: "spec-author",
     description: "Writes specifications: requirements (EARS), design, and tasks.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
   },
   {
     name: "implementer",
     description: "Writes code and tests following red-green-refactor.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: "allow", bash: "allow" }),
   },
   {
     name: "reviewer",
     description: "Validates traceability and task completion. Produces review reports.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
   },
   {
     name: "security-auditor",
     description: "Performs security audits and identifies vulnerabilities.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: "deny", bash: "deny" }),
   },
   {
     name: "doc-writer",
     description: "Writes and maintains project documentation.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
   },
   {
     name: "perf-analyzer",
     description: "Analyzes performance implications and suggests optimizations.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: "deny", bash: "deny" }),
   },
 ];
 
@@ -213,11 +206,13 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
 4. If missing: STOP and ask human to create database in Notion + share with integration + update \`.env\`
 `,
   };
+  const permissions = agentPermissionsFor(answers);
   const selectedAgentEntries = ALL_AGENT_META
     .filter((a) => shouldIncludeAgent(a.name, answers.agents))
     .map((a) => {
       const promptRef = `{file:./.opencode/agent/${a.name}.md}`;
-      return `    "${a.name}": {\n      "description": ${JSON.stringify(a.description)},\n      "mode": "subagent",\n      "prompt": ${JSON.stringify(promptRef)},\n      "permission": ${a.permission}\n    }`;
+      const permission = permissions[a.name];
+      return `    "${a.name}": {\n      "description": ${JSON.stringify(a.description)},\n      "mode": "${a.mode}",\n      "prompt": ${JSON.stringify(promptRef)},\n      "permission": ${JSON.stringify(permission)}\n    }`;
     })
     .join(",\n");
   const agentDefinitions = selectedAgentEntries ? ",\n" + selectedAgentEntries : "";
@@ -272,6 +267,7 @@ for the OpenSpec equivalent. The human approval gate still applies between \`/op
     BACKEND_TRANSITION_INPROGRESS: backendTransitionInProgress[answers.taskBackend],
     BACKEND_SPEC_READY: backendSpecReady[answers.taskBackend],
     AGENT_DEFINITIONS: agentDefinitions,
+    DEFAULT_AGENT: shouldIncludeAgent("leader", answers.agents) ? "leader" : "build",
     LINEAR_PROJECT_ID: answers.linearProjectId,
     NOTION_DATABASE_ID: answers.notionDatabaseId,
     NOTION_API_KEY: answers.notionApiKey,
@@ -281,6 +277,15 @@ for the OpenSpec equivalent. The human approval gate still applies between \`/op
     SPEC_LAYER_PROJECT_NOTES: specLayerProjectNotes,
     ...stackVars,
   };
+}
+
+function agentPermissionsFor(answers: Answers) {
+  return agentPermissions({
+    stack: answers.stack,
+    framework: answers.framework,
+    specLayer: answers.specLayer ?? "harness",
+    agents: answers.agents,
+  });
 }
 
 function shouldIncludeAgent(agentName: string, selectedAgents: string[]): boolean {
@@ -353,14 +358,18 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   }
 
   // --- Agents ---
+  // Frontmatter permissions come from the same source as opencode.jsonc so the two cannot drift.
+  const permissions = agentPermissionsFor(answers);
+  const agentFile = (agent: string, template: string) =>
+    action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(template, { ...vars, AGENT_PERMISSION: permissionYaml(permissions[agent]!) }));
   for (const agent of SHARED_AGENTS) {
     if (shouldIncludeAgent(agent, answers.agents)) {
-      files.push(action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(`shared/agents/${agent}.md`, vars)));
+      files.push(agentFile(agent, `shared/agents/${agent}.md`));
     }
   }
   for (const agent of EXTRA_AGENTS) {
     if (shouldIncludeAgent(agent, answers.agents)) {
-      files.push(action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(`shared/agents/extras/${agent}.md`, vars)));
+      files.push(agentFile(agent, `shared/agents/extras/${agent}.md`));
     }
   }
 
@@ -378,7 +387,7 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   // --- OpenCode adapter ---
   if (answers.cli === "opencode") {
     files.push(action(resolve("opencode.jsonc"), renderTemplate("opencode/opencode.jsonc.tmpl", vars)));
-    files.push(action(resolve("AGENTS.md"), loadTemplate("opencode/AGENTS.md.append.tmpl"), "append"));
+    files.push(action(resolve("AGENTS.md"), renderTemplate("opencode/AGENTS.md.append.tmpl", vars), "append"));
 
     if (answers.models && answers.models !== "none") {
       const profile = selectRoles(loadProfileTemplate(answers.models), answers.agents);

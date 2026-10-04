@@ -3,6 +3,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildPlan, type Answers } from "../../src/plan.js";
 import { applyPlan } from "../../src/apply.js";
+import { permissionYaml } from "../../src/permissions.js";
 
 const TMP = join(import.meta.dirname, "../tmp-plan");
 
@@ -506,6 +507,77 @@ describe("buildPlan", () => {
       expect(configFile!.content).toContain(`"${agentName}"`);
     }
     rmSync(TMP, { recursive: true, force: true });
+  });
+});
+
+describe("buildPlan — leader orchestration", () => {
+  function opencodeConfig(answers: Partial<Answers>) {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ cli: "opencode", ...answers }), TMP);
+    rmSync(TMP, { recursive: true, force: true });
+    return { plan, config: JSON.parse(plan.find((f) => f.path === "opencode.jsonc")!.content) };
+  }
+
+  it("makes the leader the default primary agent", () => {
+    const { config } = opencodeConfig({});
+    expect(config.default_agent).toBe("leader");
+    expect(config.agent.leader.mode).toBe("primary");
+  });
+
+  it("lets the leader launch only the selected sub-agents and explore", () => {
+    const { config } = opencodeConfig({ agents: ["leader", "spec-author", "implementer", "reviewer", "doc-writer"] });
+    expect(config.agent.leader.permission.task).toEqual({
+      "*": "deny",
+      explore: "allow",
+      "spec-author": "allow",
+      implementer: "allow",
+      reviewer: "allow",
+      "doc-writer": "allow",
+    });
+  });
+
+  it("keeps the deny-all task rule first so later allows win", () => {
+    const { config } = opencodeConfig({});
+    expect(Object.keys(config.agent.leader.permission.task)[0]).toBe("*");
+  });
+
+  it("falls back to build as default agent when leader is not selected", () => {
+    const { config } = opencodeConfig({ agents: ["spec-author", "implementer"] });
+    expect(config.default_agent).toBe("build");
+    expect(config.agent.leader).toBeUndefined();
+  });
+
+  it("leader.md frontmatter matches the primary mode and task allowlist", () => {
+    const { plan } = opencodeConfig({ agents: ["leader", "spec-author", "implementer"] });
+    const leader = plan.find((f) => f.path === ".opencode/agent/leader.md")!.content;
+    const frontmatter = leader.split("---")[1]!;
+    expect(frontmatter).toContain("mode: primary");
+    expect(frontmatter).toContain('task:\n    "*": deny\n    "explore": allow\n    "spec-author": allow\n    "implementer": allow\n');
+    expect(frontmatter).not.toContain("reviewer");
+    expect(leader).not.toContain("{{");
+  });
+
+  it("agent .md frontmatter permissions match opencode.jsonc for every agent", () => {
+    const agents = ["leader", "spec-author", "implementer", "reviewer", "security-auditor", "doc-writer", "perf-analyzer"];
+    const { plan, config } = opencodeConfig({ agents, stack: "node" });
+    for (const agent of agents) {
+      const md = plan.find((f) => f.path === `.opencode/agent/${agent}.md`)!.content;
+      expect(md.split("---")[1]).toContain(permissionYaml(config.agent[agent].permission));
+      expect(md).not.toContain("{{");
+    }
+  });
+
+  it("AGENTS.md opencode notes name the leader as the default agent", () => {
+    const { plan } = opencodeConfig({});
+    const appended = plan.find((f) => f.path === "AGENTS.md" && f.mode === "append")!.content;
+    expect(appended).toContain("The `leader` agent is the default primary agent");
+    expect(appended).not.toContain("{{");
+  });
+
+  it("AGENTS.md opencode notes name build as the default agent without a leader", () => {
+    const { plan } = opencodeConfig({ agents: ["implementer"] });
+    const appended = plan.find((f) => f.path === "AGENTS.md" && f.mode === "append")!.content;
+    expect(appended).toContain("The `build` agent is the default primary agent");
   });
 });
 

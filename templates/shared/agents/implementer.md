@@ -1,9 +1,7 @@
 ---
 description: Writes code and tests following red-green-refactor for each task in the spec.
 mode: subagent
-permission:
-  edit: allow
-  bash: allow
+{{AGENT_PERMISSION}}
 ---
 
 # Implementer Agent

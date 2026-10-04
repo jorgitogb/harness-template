@@ -1,11 +1,7 @@
 ---
 description: Orchestrator. Receives the main task, divides work, and launches sub-agents. NEVER writes code directly.
-mode: subagent
-permission:
-  edit:
-    "src/**": deny
-    "tests/**": deny
-  bash: ask
+mode: primary
+{{AGENT_PERMISSION}}
 ---
 
 # Leader Agent (Orchestrator)

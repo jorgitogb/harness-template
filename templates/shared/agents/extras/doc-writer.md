@@ -1,11 +1,7 @@
 ---
 description: Writes and maintains project documentation.
 mode: subagent
-permission:
-  edit:
-    "src/**": deny
-    "tests/**": deny
-  bash: deny
+{{AGENT_PERMISSION}}
 ---
 
 # Doc Writer Agent

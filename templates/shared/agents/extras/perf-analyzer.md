@@ -1,9 +1,7 @@
 ---
 description: Analyzes performance implications and suggests optimizations.
 mode: subagent
-permission:
-  edit: deny
-  bash: deny
+{{AGENT_PERMISSION}}
 ---
 
 # Performance Analyzer Agent
