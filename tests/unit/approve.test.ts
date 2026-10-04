@@ -137,7 +137,9 @@ describe("init.sh spec check — approval gate", () => {
     approveSpec(TMP, "login", "Ada");
     writeFeatures("done");
     writeFileSync(join(SPEC, "tasks.md"), TASKS.replaceAll("- [ ]", "- [x]"));
-    expect(runSpecCheck().ok).toBe(true);
+    mkdirSync(join(TMP, "tests"), { recursive: true });
+    writeFileSync(join(TMP, "tests/login.test.ts"), 'it("login/R1: logs in", () => {});\n');
+    expect(runSpecCheck()).toMatchObject({ ok: true });
   });
 
   it("fails when the spec changed after approval", () => {

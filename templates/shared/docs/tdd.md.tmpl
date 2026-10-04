@@ -17,7 +17,8 @@ Repeat for every task.
 - Do not write production code without a failing test first.
 - Do not skip the refactor step — clean code is part of the deliverable.
 - Do not leave broken tests. If you cannot make a test pass, document the blocker and stop.
-- Every test must reference its requirement (`R<n>`) in the test name or a comment.
+- Every test must be tagged `<feature>/R<n>` in its name or a comment right above it, e.g. `it("login/R1: logs in with valid credentials")` or `# login/R1`. The feature prefix keeps IDs unique across specs.
+- `./init.sh` enforces the tags: a `done` feature fails if any requirement lacks a tagged test, and any tag pointing to a non-existent requirement fails.
 
 ## Test structure
 

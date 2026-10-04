@@ -37,7 +37,7 @@
 - [ ] Every feature with `"sdd": true` in state `spec_ready`, `in_progress`, or `done` has its `specs/<name>/` directory with 3 files: `requirements.md`, `design.md`, `tasks.md`.
 - [ ] `requirements.md` uses EARS notation (see `docs/specs.md`).
 - [ ] Every `done` feature with `"sdd": true` has all tasks marked `[x]` in `tasks.md`.
-- [ ] Every `R<n>` in `requirements.md` is covered by at least one concrete test in `tests/`.
+- [ ] Every `R<n>` in `requirements.md` is covered by at least one test tagged `<feature>/R<n>` (`./init.sh` checks this).
 
 ## C7 — TDD discipline
 
