@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync, writeFileSync, chmodSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync, chmodSync, readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import { render } from "../../src/render.js";
 import { join } from "node:path";
 import { approveSpec } from "../../src/approve.js";
 // @ts-expect-error — plain JS plugin shipped as a template
@@ -140,6 +142,21 @@ describe("harness-guard — code edit gate", () => {
     process.env.HARNESS_GUARD = "off";
     const { before } = await guard();
     await expect(before("edit", { filePath: "src/app.ts" })).resolves.toBeUndefined();
+  });
+});
+
+describe("harness-guard — strict rigor", () => {
+  it("ignores HARNESS_GUARD=off when rendered with the escape hatch disabled", async () => {
+    feature("pending");
+    process.env.HARNESS_GUARD = "off";
+    const source = readFileSync(join(import.meta.dirname, "../../templates/opencode/plugins/harness-guard.js"), "utf-8");
+    const strictPath = join(TMP, "harness-guard.strict.mjs");
+    writeFileSync(strictPath, render(source, { GUARD_ESCAPE_HATCH: "disabled" } as any));
+    const { HarnessGuard: StrictGuard } = await import(pathToFileURL(strictPath).href);
+    const hooks = await StrictGuard({ directory: TMP, worktree: TMP, client: fakeClient().client, project: {} });
+    await expect(
+      hooks["tool.execute.before"]({ tool: "edit", sessionID: "s", callID: "c" }, { args: { filePath: "src/app.ts" } }),
+    ).rejects.toThrow(/no feature is in_progress/);
   });
 });
 

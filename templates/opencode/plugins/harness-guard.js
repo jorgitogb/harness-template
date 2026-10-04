@@ -7,7 +7,7 @@
 // - When a session that edited code goes idle, ./init.sh runs. If it fails, a top-level
 //   session is told to fix it (at most MAX_FIX_ATTEMPTS times); sub-agents get a toast.
 //
-// For work outside the workflow, start opencode with HARNESS_GUARD=off.
+// For work outside the workflow, start opencode with HARNESS_GUARD=off (ignored under strict rigor).
 // Only one export: opencode loads every export of a plugin file as a plugin.
 
 import { createHash } from "node:crypto";
@@ -15,6 +15,8 @@ import { execFile } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, relative, sep } from "node:path";
 
+// "disabled" under strict rigor: HARNESS_GUARD=off is then ignored.
+const ESCAPE_HATCH = "{{GUARD_ESCAPE_HATCH}}";
 const MAX_FIX_ATTEMPTS = 2;
 const INIT_TIMEOUT_MS = 10 * 60 * 1000;
 const OUTPUT_TAIL_LINES = 40;
@@ -106,7 +108,7 @@ function runInit(directory) {
 }
 
 export const HarnessGuard = async ({ client, directory }) => {
-  const guardOff = () => process.env.HARNESS_GUARD === "off";
+  const guardOff = () => ESCAPE_HATCH !== "disabled" && process.env.HARNESS_GUARD === "off";
   const touchedCode = new Set();
   const fixAttempts = new Map();
 

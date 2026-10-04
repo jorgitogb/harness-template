@@ -7,6 +7,10 @@
 # Expected output: clear exit codes and blocks marked [OK]/[FAIL].
 
 set -u
+
+# Enforcement level chosen at install time (light | standard | strict). See AGENTS.md.
+export HARNESS_RIGOR="{{RIGOR}}"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'

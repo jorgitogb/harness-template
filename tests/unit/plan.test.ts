@@ -641,6 +641,40 @@ describe("buildPlan — harness guard plugin", () => {
   });
 });
 
+describe("buildPlan — rigor", () => {
+  function file(answers: Partial<Answers>, path: string) {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ cli: "opencode", ...answers }), TMP);
+    rmSync(TMP, { recursive: true, force: true });
+    return plan.find((f) => f.path === path)?.content;
+  }
+
+  it.each(["light", "standard", "strict"] as const)("%s: init.sh exports the rigor level", (rigor) => {
+    expect(file({ rigor }, "init.sh")).toContain(`export HARNESS_RIGOR="${rigor}"`);
+  });
+
+  it("defaults to standard", () => {
+    expect(file({}, "init.sh")).toContain('export HARNESS_RIGOR="standard"');
+  });
+
+  it("light: no guard plugin, leader may proceed on chat approval", () => {
+    expect(file({ rigor: "light" }, ".opencode/plugins/harness-guard.js")).toBeUndefined();
+    expect(file({ rigor: "light" }, ".opencode/agent/leader.md")).toContain("Rigor: light");
+  });
+
+  it("strict: guard plugin ignores HARNESS_GUARD=off", () => {
+    const plugin = file({ rigor: "strict" }, ".opencode/plugins/harness-guard.js")!;
+    expect(plugin).toContain('const ESCAPE_HATCH = "disabled";');
+    expect(file({ rigor: "standard" }, ".opencode/plugins/harness-guard.js")).toContain('const ESCAPE_HATCH = "enabled";');
+  });
+
+  it("AGENTS.md states the rigor level and what it means", () => {
+    const agents = file({ rigor: "strict" }, "AGENTS.md")!;
+    expect(agents).toContain("Rigor:** strict");
+    expect(agents).not.toContain("{{");
+  });
+});
+
 describe("buildPlan — spec layer", () => {
   it("harness layer keeps specs/ and feature_list.json, no OpenSpec notes", () => {
     mkdirSync(TMP, { recursive: true });

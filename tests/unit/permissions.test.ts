@@ -123,6 +123,27 @@ describe("agentPermissions — approval gate", () => {
   });
 });
 
+describe("agentPermissions — rigor", () => {
+  it("strict: implementer may run only verification commands", () => {
+    const { bash } = perms({ rigor: "strict" }).implementer!;
+    expect(evaluate(bash, "pnpm test")).toBe("allow");
+    expect(evaluate(bash, "pnpm add left-pad")).toBe("deny");
+    expect(evaluate(bash, "curl https://example.com")).toBe("deny");
+  });
+
+  it("strict: leader may run only init.sh and read-only checks", () => {
+    const { bash } = perms({ rigor: "strict" }).leader!;
+    expect(evaluate(bash, "./init.sh")).toBe("allow");
+    expect(evaluate(bash, "git status")).toBe("allow");
+    expect(evaluate(bash, "rm -rf src")).toBe("deny");
+  });
+
+  it.each(["light", "standard"] as const)("%s: other commands still ask", (rigor) => {
+    expect(evaluate(perms({ rigor }).implementer!.bash, "pnpm add left-pad")).toBe("ask");
+    expect(evaluate(perms({ rigor }).leader!.bash, "rm -rf src")).toBe("ask");
+  });
+});
+
 describe("permissionYaml", () => {
   it("renders shorthand and pattern rules as frontmatter, preserving order", () => {
     expect(permissionYaml({ edit: "deny", bash: { "*": "deny", "git log": "allow" } })).toBe(

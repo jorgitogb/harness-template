@@ -4,7 +4,7 @@ import * as p from "@clack/prompts";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { detect } from "./detect.js";
-import { buildPlan, type Answers } from "./plan.js";
+import { buildPlan, RIGOR_LEVELS, type Answers } from "./plan.js";
 import { applyPlan, printResult } from "./apply.js";
 import { promptWizard, parseArgs } from "./prompts.js";
 import { runModelsCommand, MODEL_PROFILES } from "./models.js";
@@ -51,6 +51,7 @@ Options:
   --best-practices          Enable best-practices checks in init.sh [default: true]
   --learning / --no-learning  Learning mode (step-by-step explanations) [default: false]
   --models <profile>        Per-role model routing for opencode (none, free, gwdg, mixed) [default: none]
+  --rigor <level>           Enforcement level (light, standard, strict) [default: standard]
   --spec-layer <name>       Spec layer (harness, openspec) [default: openspec if ./openspec exists, else harness]
   --agents <list>           Comma-separated agent names [default: leader,spec-author,implementer,reviewer]
   --rules <list|default>    Ground rules selection [default: default]
@@ -90,6 +91,10 @@ if (cliArgs.specLayer && !["harness", "openspec"].includes(cliArgs.specLayer)) {
   console.error("Error: --spec-layer must be harness or openspec");
   process.exit(1);
 }
+if (cliArgs.rigor && !RIGOR_LEVELS.includes(cliArgs.rigor)) {
+  console.error(`Error: --rigor must be one of ${RIGOR_LEVELS.join(", ")}`);
+  process.exit(1);
+}
 const defaultSpecLayer = existsSync(join(cwd, "openspec")) ? "openspec" : "harness";
 
 let answers: Answers;
@@ -118,6 +123,7 @@ if (isNonInteractive) {
     notionApiKey: cliArgs.notionApiKey ?? "",
     models: cliArgs.models ?? "none",
     specLayer: cliArgs.specLayer ?? defaultSpecLayer,
+    rigor: cliArgs.rigor ?? "standard",
   };
 } else {
   answers = await promptWizard(detected, defaultSpecLayer);
@@ -125,6 +131,7 @@ if (isNonInteractive) {
   if (cliArgs.force) answers.force = true;
   if (cliArgs.models) answers.models = cliArgs.models;
   if (cliArgs.specLayer) answers.specLayer = cliArgs.specLayer;
+  if (cliArgs.rigor) answers.rigor = cliArgs.rigor;
 }
 
 // Build and apply plan
