@@ -12,6 +12,11 @@
 - The `{{DEFAULT_AGENT}}` agent is the default primary agent. `build` (unrestricted) and `plan` (read-only) are also available via `Tab`.
 - Agent permissions are enforced by opencode. The leader cannot edit `src/` or `tests/`, and can launch only the harness sub-agents and `explore`.
 - Use `Tab` to cycle between primary agents during a session.
+- `.opencode/plugins/harness-guard.js` (when SDD is on) enforces the workflow for every agent, including `build`:
+  - Project code can only be edited while a feature is `in_progress` with an approved, unchanged spec (or `"sdd": false`).
+  - No agent can write `APPROVED` or run the approve command.
+  - When a session that edited code goes idle, `./init.sh` runs and the agent is asked to fix failures (at most twice).
+  - For work outside the workflow, the human starts opencode with `HARNESS_GUARD=off`.
 - Use `session_child_first` / `session_child_cycle` / `session_parent` to navigate between parent and child sessions.
 
 ## Session management
