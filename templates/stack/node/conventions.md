@@ -45,8 +45,3 @@
 - Test function names: `describe('ModuleName') / it('should <behavior>')`.
 - Use `vi.fn()` or `jest.fn()` for mocks.
 - Use `tmp` directory for filesystem tests.
-
-## Git
-
-- Conventional commits: `feat(module): description`.
-- Branch naming: `feat/description`, `fix/description`.

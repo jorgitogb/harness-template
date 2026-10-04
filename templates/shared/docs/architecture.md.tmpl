@@ -1,11 +1,10 @@
 # Architecture
 
-> What "good work" means in this project.
+> What "good work" means in this project. Replace the generic parts with what is true for this codebase. A short, accurate document beats a long, generic one.
 
 ## Structure
 
-- `src/` — Production code. One module per file. Keep files focused.
-- `tests/` — Automated tests. One test file per module.
+- Production code and tests live where the stack conventions in `docs/conventions.md` put them. Keep modules focused.
 - `specs/` — Per-feature specifications (requirements, design, tasks).
 - `progress/` — Session state and history.
 - `docs/` — Project documentation.
@@ -18,20 +17,16 @@
 - **Tests are mandatory.** No task is `done` without passing tests.
 - **Traceability.** Every test maps to a requirement. Every requirement has at least one test.
 
-## Naming
+## Naming and error handling
 
-- Files: `snake_case` for Python, `kebab-case` for Node/TypeScript.
-- Functions: `camelCase` for TypeScript, `snake_case` for Python/Go.
-- Classes: `PascalCase` everywhere.
-- Constants: `UPPER_SNAKE_CASE` everywhere.
+Follow `docs/conventions.md`. Language-specific rules (naming, error style, formatting) live there only, so there is one source of truth.
 
-## Error handling
+Regardless of language:
 
-- Return error objects, never throw in business logic.
-- CLI entry points catch and format errors for humans.
-- Log errors to stderr, output to stdout.
+- Entry points (CLIs, HTTP handlers) catch errors and turn them into messages a human can act on.
+- Diagnostics go to stderr, program output to stdout.
 
 ## Dependencies
 
 - Minimal. No framework unless the project already uses one.
-- No new dependency without a justification in `docs/adr/`.
+- No new dependency without a short justification in `docs/adr/`.

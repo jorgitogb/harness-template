@@ -58,8 +58,3 @@
 - `React.memo` for pure presentational components rendered frequently.
 - `useMemo` / `useCallback` only when profiling shows a problem.
 - Code-split with `React.lazy` + `Suspense` for route-level chunks.
-
-## Git
-
-- Conventional commits: `feat(ui): add Button component`.
-- Branch naming: `feat/button-styles`, `fix/login-redirect`.

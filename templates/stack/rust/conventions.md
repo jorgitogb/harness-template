@@ -42,8 +42,3 @@
 - Test module: `#[cfg(test)] mod tests { ... }`.
 - Use `tempfile` crate for filesystem tests.
 - Use `assert_eq!`, `assert_ne!`, `assert!` macros.
-
-## Git
-
-- Conventional commits: `feat(module): description`.
-- Branch naming: `feat/description`, `fix/description`.

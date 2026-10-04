@@ -78,8 +78,3 @@
 - Server output (`output: 'server'`) for dynamic routes.
 - Use `transition:animate` for view transitions between pages.
 - Lazy-load below-the-fold content with `client:visible`.
-
-## Git
-
-- Conventional commits: `feat(blog): add new post`.
-- Branch naming: `feat/content-collection`, `fix/routing-slug`.
