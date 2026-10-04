@@ -107,7 +107,8 @@ try:
         untested = required - tagged
         unknown = tagged - required
         if untested:
-            msg = f"{name}: {ids(untested)} have no test tagged {name}/R<n>"
+            verb = "has" if len(untested) == 1 else "have"
+            msg = f"{name}: {ids(untested)} {verb} no test tagged {name}/R<n>"
             (gate if f["status"] == "done" else warnings).append(msg)
         if unknown:
             gate.append(f"{name}: tests tag {', '.join(f'{name}/R{n}' for n in sorted(unknown))}, not in {spec_dir}/requirements.md")

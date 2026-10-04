@@ -95,6 +95,14 @@ describe("init.sh traceability — done features", () => {
   });
 });
 
+describe("init.sh traceability — wording", () => {
+  it("uses singular wording for a single untested requirement", () => {
+    approvedFeature("done");
+    write("tests/login.test.ts", 'it("login/R1 login/R2", () => {});\n');
+    expect(runSpecCheck().output).toContain("login: R3 has no test tagged login/R<n>");
+  });
+});
+
 describe("init.sh traceability — in_progress features", () => {
   it("only warns about untested requirements while work is ongoing", () => {
     approvedFeature("in_progress");
