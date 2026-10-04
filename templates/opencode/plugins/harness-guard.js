@@ -27,8 +27,12 @@ const APPROVE_COMMAND = /harness-init\s+approve\b/;
 const WRITES_FILE = /(>|\btee\b|\bcp\b|\bmv\b|\btouch\b|\bsed\s+-i|\brm\b|\bln\b|\binstall\b|\bdd\b)/;
 const SPEC_FILES = ["requirements.md", "design.md", "tasks.md"];
 
+// Without this, blocked agents tend to route around the gate (e.g. inventing a feature and writing its spec).
+const STOP_AND_ASK =
+  "Stop and tell the human what you were asked to do and why it is blocked. Do not create features, write specs or change feature status to get around this unless the human explicitly asks you to.";
+
 const APPROVAL_DENIED =
-  "Only a human can approve a spec. Ask them to review specs/<feature>/ and run `npx @jorgegb/harness-init approve <feature>` in their terminal.";
+  "Only a human can approve a spec. Stop and ask them to review specs/<feature>/ and run `npx @jorgegb/harness-init approve <feature>` in their terminal.";
 
 // Must match specHash() in harness-init's src/approve.ts and init.sh.
 function specHash(specDir) {
@@ -139,7 +143,7 @@ export const HarnessGuard = async ({ client, directory }) => {
         if (APPROVAL_PATH.test(rel)) throw new Error(APPROVAL_DENIED);
         if (!isCode(rel)) continue;
         const blocker = codeEditBlocker(directory);
-        if (blocker) throw new Error(`harness-guard blocked editing ${rel}: ${blocker}.`);
+        if (blocker) throw new Error(`harness-guard blocked editing ${rel}: ${blocker}. ${STOP_AND_ASK}`);
       }
     },
 
