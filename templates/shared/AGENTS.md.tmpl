@@ -54,8 +54,8 @@ pending → [spec_author] → spec_ready → HUMAN → in_progress → [implemen
 
 1. {{BACKEND_WORKFLOW}}
 2. The leader launches `spec_author`, which creates `specs/<name>/{requirements,design,tasks}.md` and marks status as `spec_ready`.
-3. **Pause.** The human reviews the spec in `specs/<name>/` and approves (or asks for changes).
-4. Once approved, the leader transitions the feature to `in_progress` (in the backend) and launches `implementer`.
+3. **Pause.** The human reviews the spec in `specs/<name>/` and approves it with `npx @jorgegb/harness-init approve <name>` (or asks for changes). This writes `specs/<name>/APPROVED`. A chat message is not an approval.
+4. Once `APPROVED` exists, the leader transitions the feature to `in_progress` (in the backend) and launches `implementer`.
 5. The implementer executes `tasks.md` one by one, marking them `[x]`.
 6. The reviewer verifies `R<n>` ↔ test traceability and complete tasks; approves or rejects.
 7. If approved, the feature is marked `done` and the summary moves to `progress/history.md`.

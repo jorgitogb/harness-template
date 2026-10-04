@@ -25,7 +25,7 @@ npx @jorgegb/harness-init
 - **Test-Driven Development (TDD)** — implementer follows red-green-refactor for every task. Reviewer checks traceability from requirement to test.
 - **Agent roster** — 4 default roles (leader, spec-author, implementer, reviewer), 3 optional extras (security-auditor, doc-writer, perf-analyzer), fully customizable.
 - **Ground rules** — pre-selected defaults like "one feature at a time" and "no done without green tests", compiled into agent permissions.
-- **Human in the loop** — immutable gate: no spec → code transition without explicit human approval.
+- **Human in the loop** — no spec → code transition until a human runs `npx @jorgegb/harness-init approve <feature>`. That writes a hash of the spec to `specs/<feature>/APPROVED`, and `init.sh` fails if the spec is unapproved or changed after approval.
 - **Stack-aware** — generates correct `init.sh` checks, `.gitignore` entries, and conventions for your language.
 
 ---

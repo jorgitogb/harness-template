@@ -103,6 +103,26 @@ describe("agentPermissions — leader", () => {
   });
 });
 
+describe("agentPermissions — approval gate", () => {
+  it("no agent can write a spec approval file", () => {
+    for (const [agent, p] of Object.entries(perms())) {
+      expect(evaluate(p.edit, "specs/login/APPROVED"), agent).toBe("deny");
+    }
+  });
+
+  it("no agent can run the approve command", () => {
+    for (const cmd of ["npx @jorgegb/harness-init approve login", "pnpm dlx @jorgegb/harness-init approve login --yes"]) {
+      for (const [agent, p] of Object.entries(perms())) {
+        expect(evaluate(p.bash, cmd), `${agent}: ${cmd}`).toBe("deny");
+      }
+    }
+  });
+
+  it("the leader still asks for other commands", () => {
+    expect(evaluate(perms().leader!.bash, "git status")).toBe("ask");
+  });
+});
+
 describe("permissionYaml", () => {
   it("renders shorthand and pattern rules as frontmatter, preserving order", () => {
     expect(permissionYaml({ edit: "deny", bash: { "*": "deny", "git log": "allow" } })).toBe(

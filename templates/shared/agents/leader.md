@@ -33,21 +33,23 @@ NEVER skip the spec phase. NEVER launch the implementer if the feature is `pendi
 1. Launch **1 `spec_author` sub-agent**.
 2. The spec_author writes `specs/<name>/{requirements.md, design.md, tasks.md}` and changes the status to `spec_ready`.
 3. **STOP.** Do NOT launch the implementer. Your message to the human:
-   > "Spec ready in `specs/<name>/`. Review it and say **'approved'** to continue with implementation, or ask for changes."
+   > "Spec ready in `specs/<name>/`. Review it, then approve it by running `npx @jorgegb/harness-init approve <name>` yourself, or ask for changes."
 
-### Case B — status == `spec_ready` AND the human just approved
+Approval is a file, not a chat message. Saying "approved" in chat is not enough, and you must never write `specs/<name>/APPROVED` or run the approve command yourself.
 
-1. {{BACKEND_TRANSITION_INPROGRESS}}
+### Case B — status == `spec_ready` AND `specs/<name>/APPROVED` exists
+
+1. {{BACKEND_TRANSITION_INPROGRESS}} Then run `./init.sh`. If it reports the spec as not approved or changed after approval, revert the status and go to Case C.
 2. Launch **1 `implementer` sub-agent**, passing it the path `specs/<name>/` as input. The implementer works from the spec, not the original acceptance criteria.
 3. When it finishes → launch **1 `reviewer`** that checks test ↔ requirement traceability and that `tasks.md` is complete.
 
-### Case C — status == `spec_ready` WITHOUT human approval
+### Case C — status == `spec_ready` WITHOUT `specs/<name>/APPROVED`
 
-Do NOT continue. The human has not reviewed the spec yet. Remind them what they need to do.
+Do NOT continue, even if the human said "approved" in chat. Remind them to run `npx @jorgegb/harness-init approve <name>`.
 
 ### Case D — status == `in_progress`
 
-Session was interrupted. Ask the human whether to resume the implementer or abort.
+Session was interrupted. Run `./init.sh` first: if the spec changed after approval, stop and ask the human to review and re-approve. Otherwise ask whether to resume the implementer or abort.
 
 ## Anti-broken-telephone rule
 

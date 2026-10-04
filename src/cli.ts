@@ -8,6 +8,7 @@ import { buildPlan, type Answers } from "./plan.js";
 import { applyPlan, printResult } from "./apply.js";
 import { promptWizard, parseArgs } from "./prompts.js";
 import { runModelsCommand, MODEL_PROFILES } from "./models.js";
+import { runApproveCommand } from "./approve.js";
 
 const VERSION = "0.1.0";
 
@@ -22,6 +23,10 @@ if (rawArgs[0] === "models") {
   process.exit(await runModelsCommand(rawArgs.slice(1), process.cwd()));
 }
 
+if (rawArgs[0] === "approve") {
+  process.exit(await runApproveCommand(rawArgs.slice(1), process.cwd()));
+}
+
 if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
   console.log(`
 harness-init v${VERSION}
@@ -31,6 +36,7 @@ Bootstrap an AI dev workspace with SDD, TDD, and agent roles.
 Usage:
   npx @jorgegb/harness-init [options]
   npx @jorgegb/harness-init models <check|sync>   Re-resolve per-role models (see --models)
+  npx @jorgegb/harness-init approve <feature>     Approve specs/<feature>/ for implementation (human only)
 
 Options:
   --cli <name>              Target AI CLI (opencode, claude, codex) [default: opencode]
