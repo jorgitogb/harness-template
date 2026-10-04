@@ -50,8 +50,3 @@
 - Split settings: `base.py`, `production.py`, `local.py`.
 - Use `django-environ` or `python-decouple` for secrets.
 - `ALLOWED_HOSTS`, `DEBUG`, `SECRET_KEY` from environment.
-
-## Git
-
-- Conventional commits: `feat(blog): add post model`.
-- Branch naming: `feat/user-model`, `fix/migration-0003`.

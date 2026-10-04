@@ -49,8 +49,3 @@
 - Test function names: `test_<behavior>`.
 - Use `tmp_path` fixture for filesystem tests.
 - Mock only external services; test real logic.
-
-## Git
-
-- Conventional commits: `feat(module): description`.
-- Branch naming: `feat/description`, `fix/description`.

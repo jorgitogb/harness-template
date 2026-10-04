@@ -51,6 +51,18 @@ export function renderTemplate(relativePath: string, vars: RenderVars): string {
   return render(raw, vars);
 }
 
+/** Push every Markdown heading one level down so stack docs nest under the shared conventions.md. */
+function demoteHeadings(markdown: string): string {
+  let inFence = false;
+  return markdown
+    .split("\n")
+    .map((line) => {
+      if (line.startsWith("```")) inFence = !inFence;
+      return !inFence && /^#{1,5} /.test(line) ? `#${line}` : line;
+    })
+    .join("\n");
+}
+
 function loadFrameworkTemplate(stack: string, framework: Framework, filename: string): string | null {
   if (framework === "none") return null;
   try {
@@ -62,7 +74,7 @@ function loadFrameworkTemplate(stack: string, framework: Framework, filename: st
 
 export function getStackVars(stack: string, framework: Framework = "none"): Pick<RenderVars, "STACK_CONVENTIONS" | "RUNTIME_CHECKS" | "TEST_COMMAND"> {
   const checks = loadTemplate(`stack/${stack}/init.checks.sh`);
-  const conventions = loadTemplate(`stack/${stack}/conventions.md`);
+  const conventions = demoteHeadings(loadTemplate(`stack/${stack}/conventions.md`)).trimEnd();
 
   const testCommands: Record<string, string> = {
     python: 'if command -v pytest >/dev/null 2>&1; then\n  if pytest -q 2>&1; then\n    ok "All tests pass"\n  else\n    fail "Some tests failed"\n    EXIT_CODE=1\n  fi\nelse\n  warn "pytest not installed — skipping tests"\nfi',
@@ -78,7 +90,7 @@ export function getStackVars(stack: string, framework: Framework = "none"): Pick
 
   const fwConventions = loadFrameworkTemplate(stack, framework, "conventions.md");
   if (fwConventions) {
-    finalConventions = conventions + "\n\n" + fwConventions;
+    finalConventions = conventions + "\n\n" + demoteHeadings(fwConventions).trimEnd();
   }
 
   const fwChecks = loadFrameworkTemplate(stack, framework, "init.checks.sh");

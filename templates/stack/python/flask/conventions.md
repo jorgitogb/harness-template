@@ -47,8 +47,3 @@
 - One template per page, extend `base.html`.
 - Use `{% block %}` for overrides.
 - Template filters in `app/templatetools/`.
-
-## Git
-
-- Conventional commits: `feat(auth): add login endpoint`.
-- Branch naming: `feat/blueprint-auth`, `fix/session-config`.

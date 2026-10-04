@@ -54,6 +54,7 @@ To add a new render var, add it in three places: the `RenderVars` interface (`re
 
 - `tests/unit/` calls `buildPlan`/`applyPlan`/`detect`/`render` directly against temp dirs under `tests/tmp-*`.
 - `tests/e2e/adversarial/` spawns the real CLI (`node --import tsx src/cli.ts`) to check path traversal, hostile names and similar input. It needs `node_modules/tsx` installed.
+- `tests/unit/generated-output.test.ts` renders every stack/framework/backend/spec-layer/rigor/CLI combination. It fails on leftover `{{…}}` placeholders, `undefined` in docs or scripts, duplicate sections in `conventions.md`, and language-specific rules in the shared docs. Language rules belong in `templates/stack/`, and project-wide rules (Git, comments, test tags) in the shared `conventions.md.tmpl`.
 - `tests/lint/notion-safe.test.ts` scans every `.md`/`.tmpl` under `templates/` and fails on markup that breaks Notion rendering (`<details>`, `<summary>`, admonitions `!!!`/`:::`, capitalized JSX-like tags). Keep templates plain Markdown.
 
 ## Security constraints (from README / SECURITY.md)

@@ -42,8 +42,3 @@
 - Test function names: `TestXxx(t *testing.T)`.
 - Use `t.TempDir()` for filesystem tests.
 - Use `t.Helper()` in test helper functions.
-
-## Git
-
-- Conventional commits: `feat(package): description`.
-- Branch naming: `feat/description`, `fix/description`.

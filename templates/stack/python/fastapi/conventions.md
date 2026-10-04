@@ -51,8 +51,3 @@
 - Use `HTTPException` with proper status codes.
 - Custom exception handlers registered on the app.
 - Validation errors returned automatically by Pydantic.
-
-## Git
-
-- Conventional commits: `feat(api): add user endpoint`.
-- Branch naming: `feat/user-auth`, `fix/db-session`.
