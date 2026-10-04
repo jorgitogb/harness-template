@@ -6,7 +6,7 @@
 
 1. Run `./init.sh`. All blocks must be `[OK]`. If any `[FAIL]`, fix before proceeding.
 2. Check `CHECKPOINTS.md` C1–C7. Every box must be checked.
-3. Verify traceability: every `R<n>` in your spec maps to at least one test.
+3. Verify traceability: every `R<n>` in your spec has at least one test tagged `<feature>/R<n>`. `./init.sh` checks this mechanically.
 
 ## Verification steps
 
@@ -19,8 +19,8 @@
 ### For the reviewer
 
 - Walk through `CHECKPOINTS.md` C1–C7.
-- Verify every `R<n>` in `requirements.md` has a matching test.
-- Verify every test in `tests/` maps to an `R<n>`.
+- `./init.sh` verifies that every `R<n>` has a tagged test and that no tag points to a missing requirement.
+- Judge whether each tagged test actually verifies its requirement. A tag alone proves nothing.
 - Verify all tasks in `tasks.md` are checked.
 - Write the review report to `progress/review_<feature>.md`.
 

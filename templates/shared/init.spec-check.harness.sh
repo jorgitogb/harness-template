@@ -1,12 +1,26 @@
 echo "── 3. Validating feature_list.json and specs ───────────"
 
-python3 - <<'PY'
+HARNESS_RIGOR="${HARNESS_RIGOR:-standard}" python3 - <<'PY'
 import hashlib, json, os, re, sys
+
+RIGOR = os.environ.get("HARNESS_RIGOR", "standard")
+SPEC_FILES = ("requirements.md", "design.md", "tasks.md")
+
+# A test file is anything under a tests/test/__tests__/spec folder, or named like a test.
+TEST_FILE = re.compile(
+    r"(^|/)(tests?|__tests__|spec)/"
+    r"|(^|/)test_[^/]*\.py$|_test\.(py|go|exs?)$|_spec\.rb$"
+    r"|\.(test|spec)\.[cm]?[jt]sx?$|Tests?\.(java|kt|cs)$"
+)
+SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", "dist", "build", "target",
+             "vendor", ".next", ".astro", "coverage", "specs", "progress", "docs", "openspec", ".opencode"}
+TAG = re.compile(r"(?<![A-Za-z0-9_-])([A-Za-z0-9][A-Za-z0-9_-]*)/R(\d+)\b")
+REQ_ID = re.compile(r"\bR(\d+)\b")
 
 # Must match specHash() in harness-init's src/approve.ts.
 def spec_hash(spec_dir):
     h = hashlib.sha256()
-    for fname in ("requirements.md", "design.md", "tasks.md"):
+    for fname in SPEC_FILES:
         with open(os.path.join(spec_dir, fname), encoding="utf-8", newline="") as fh:
             text = fh.read().replace("\r\n", "\n")
         if fname == "tasks.md":
@@ -23,6 +37,27 @@ def approved_hash(spec_dir):
             return line.split(":", 1)[1].strip()
     return ""
 
+def test_tags():
+    """{feature: {requirement number}} from `<feature>/R<n>` tags in test files."""
+    tags = {}
+    for root, dirs, files in os.walk("."):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        for name in files:
+            rel = os.path.relpath(os.path.join(root, name), ".").replace(os.sep, "/")
+            if not TEST_FILE.search(rel):
+                continue
+            try:
+                with open(rel, encoding="utf-8", errors="ignore") as fh:
+                    text = fh.read(2_000_000)
+            except OSError:
+                continue
+            for feature, n in TAG.findall(text):
+                tags.setdefault(feature, set()).add(int(n))
+    return tags
+
+def ids(numbers):
+    return ", ".join(f"R{n}" for n in sorted(numbers))
+
 try:
     data = json.load(open("feature_list.json"))
     valid = {"pending", "spec_ready", "in_progress", "done", "blocked"}
@@ -30,41 +65,62 @@ try:
     if len(in_progress) > 1:
         print(f"[FAIL]  {len(in_progress)} features in in_progress (max 1)")
         sys.exit(1)
-    requires_spec = {"spec_ready", "in_progress", "done"}
-    requires_approval = {"in_progress", "done"}
-    spec_errors = []
+
+    errors, warnings = [], []
+    # In light rigor, gate problems are reported but do not block.
+    gate = warnings if RIGOR == "light" else errors
+    tags = None
+
     for f in data["features"]:
         if f["status"] not in valid:
             print(f"[FAIL]  Invalid status in feature {f['id']}: {f['status']}")
             sys.exit(1)
-        if f.get("sdd") and f["status"] in requires_spec:
-            spec_dir = os.path.join("specs", f["name"])
-            missing = [n for n in ("requirements.md", "design.md", "tasks.md")
-                       if not os.path.isfile(os.path.join(spec_dir, n))]
-            for fname in missing:
-                spec_errors.append(
-                    f"feature {f['id']} ({f['name']}) in {f['status']} "
-                    f"missing {spec_dir}/{fname}"
-                )
-            if not missing and f["status"] in requires_approval:
-                approved = approved_hash(spec_dir)
-                if approved is None:
-                    spec_errors.append(
-                        f"feature {f['id']} ({f['name']}) is {f['status']} but its spec is not approved. "
-                        f"A human must run: npx @jorgegb/harness-init approve {f['name']}"
-                    )
-                elif approved != spec_hash(spec_dir):
-                    spec_errors.append(
-                        f"feature {f['id']} ({f['name']}): spec changed after approval. "
-                        f"Review the change, then a human must re-run: npx @jorgegb/harness-init approve {f['name']}"
-                    )
-    if spec_errors:
-        for e in spec_errors:
+        if not f.get("sdd") or f["status"] not in {"spec_ready", "in_progress", "done"}:
+            continue
+
+        name = f["name"]
+        spec_dir = os.path.join("specs", name)
+        missing = [n for n in SPEC_FILES if not os.path.isfile(os.path.join(spec_dir, n))]
+        for fname in missing:
+            errors.append(f"feature {f['id']} ({name}) in {f['status']} missing {spec_dir}/{fname}")
+        if missing or f["status"] == "spec_ready":
+            continue
+
+        approved = approved_hash(spec_dir)
+        if approved is None:
+            gate.append(
+                f"feature {f['id']} ({name}) is {f['status']} but its spec is not approved. "
+                f"A human must run: npx @jorgegb/harness-init approve {name}"
+            )
+        elif approved != spec_hash(spec_dir):
+            gate.append(
+                f"feature {f['id']} ({name}): spec changed after approval. "
+                f"Review the change, then a human must re-run: npx @jorgegb/harness-init approve {name}"
+            )
+
+        # Traceability: every R<n> needs a test tagged `<feature>/R<n>`, and no tag may point nowhere.
+        if tags is None:
+            tags = test_tags()
+        with open(os.path.join(spec_dir, "requirements.md"), encoding="utf-8") as fh:
+            required = {int(n) for n in REQ_ID.findall(fh.read())}
+        tagged = tags.get(name, set())
+        untested = required - tagged
+        unknown = tagged - required
+        if untested:
+            verb = "has" if len(untested) == 1 else "have"
+            msg = f"{name}: {ids(untested)} {verb} no test tagged {name}/R<n>"
+            (gate if f["status"] == "done" else warnings).append(msg)
+        if unknown:
+            gate.append(f"{name}: tests tag {', '.join(f'{name}/R{n}' for n in sorted(unknown))}, not in {spec_dir}/requirements.md")
+
+    for w in warnings:
+        print(f"[WARN]  {w}")
+    if errors:
+        for e in errors:
             print(f"[FAIL]  {e}")
         sys.exit(1)
-    print(f"[OK]    feature_list.json valid ({len(data['features'])} features)")
-    print(f"[OK]    Specs present for sdd features with non-pending status")
-    print(f"[OK]    In-progress/done specs approved and unchanged since approval")
+    print(f"[OK]    feature_list.json valid ({len(data['features'])} features, rigor: {RIGOR})")
+    print(f"[OK]    Specs present, approved and traced for in-progress/done features")
 except SystemExit:
     raise
 except Exception as e:

@@ -24,7 +24,7 @@ You may run only `./init.sh`, the project's test and check commands, and read-on
 For each requirement `R<n>` in `requirements.md`:
 
 1. Does at least one test in `tests/` cover this requirement?
-2. Does the test name reference `R<n>` or the requirement text?
+2. Is the test tagged `<feature>/R<n>`? (`./init.sh` already checks that every requirement has a tag. Your job is to judge whether the tagged test actually verifies the requirement.)
 3. Does the production code in `src/` make this test pass?
 4. Is every task in `tasks.md` marked `[x]`?
 

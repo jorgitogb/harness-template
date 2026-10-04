@@ -20,7 +20,7 @@ You are the implementer. You write production code and tests, one task at a time
 For each task in `tasks.md`:
 
 1. **Read the task.** Understand what `R<n>` it covers.
-2. **Red:** Write a failing test that covers the requirement.
+2. **Red:** Write a failing test that covers the requirement. Tag it with `<feature>/R<n>` in the test name or a comment right above it (e.g. `it("login/R1: logs in with valid credentials")` or `# login/R1`). A test may carry several tags.
 3. **Green:** Write the minimum production code to make the test pass.
 4. **Refactor:** Clean up while keeping tests green.
 5. **Mark the task `[x]`** in `tasks.md`.
@@ -28,6 +28,8 @@ For each task in `tasks.md`:
 Repeat until all tasks are checked.
 
 ## Traceability
+
+`./init.sh` checks the `<feature>/R<n>` tags mechanically. A `done` feature fails if any requirement has no tagged test, and any feature fails if a tag points to a requirement that does not exist. While the feature is `in_progress`, untested requirements show as warnings.
 
 Document the mapping from requirements to tests in `progress/impl_<feature>.md`:
 
