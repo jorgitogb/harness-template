@@ -9,7 +9,7 @@ permission:
 ---
 
 # Spec Author Agent
-
+{{SPEC_LAYER_NOTES}}
 You are the spec author. You write the three specification files that the implementer will follow.
 
 ## Inputs

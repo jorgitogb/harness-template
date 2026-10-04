@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 import * as p from "@clack/prompts";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { detect } from "./detect.js";
 import { buildPlan, type Answers } from "./plan.js";
 import { applyPlan, printResult } from "./apply.js";
 import { promptWizard, parseArgs } from "./prompts.js";
+import { runModelsCommand, MODEL_PROFILES } from "./models.js";
 
 const VERSION = "0.1.0";
 
@@ -15,6 +18,10 @@ if (rawArgs.includes("--version") || rawArgs.includes("-v")) {
   process.exit(0);
 }
 
+if (rawArgs[0] === "models") {
+  process.exit(await runModelsCommand(rawArgs.slice(1), process.cwd()));
+}
+
 if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
   console.log(`
 harness-init v${VERSION}
@@ -23,6 +30,7 @@ Bootstrap an AI dev workspace with SDD, TDD, and agent roles.
 
 Usage:
   npx @jorgegb/harness-init [options]
+  npx @jorgegb/harness-init models <check|sync>   Re-resolve per-role models (see --models)
 
 Options:
   --cli <name>              Target AI CLI (opencode, claude, codex) [default: opencode]
@@ -36,6 +44,8 @@ Options:
   --tdd / --no-tdd          Enable Test-Driven Development [default: true]
   --best-practices          Enable best-practices checks in init.sh [default: true]
   --learning / --no-learning  Learning mode (step-by-step explanations) [default: false]
+  --models <profile>        Per-role model routing for opencode (none, free, gwdg, mixed) [default: none]
+  --spec-layer <name>       Spec layer (harness, openspec) [default: openspec if ./openspec exists, else harness]
   --agents <list>           Comma-separated agent names [default: leader,spec-author,implementer,reviewer]
   --rules <list|default>    Ground rules selection [default: default]
   --name <name>             Project name [default: directory name]
@@ -49,6 +59,7 @@ Examples:
   npx @jorgegb/harness-init
   npx @jorgegb/harness-init --cli opencode --stack python --sdd --tdd
   npx @jorgegb/harness-init --yes --name my-project
+  npx @jorgegb/harness-init --models mixed --spec-layer openspec --yes
   npx @jorgegb/harness-init --task-backend linear --linear-project-id <id> --yes
   npx @jorgegb/harness-init --task-backend notion --notion-database-id <id> --notion-api-key <key> --yes
 `);
@@ -65,6 +76,15 @@ const cwd = process.cwd();
 const detected = detect(cwd);
 const isNonInteractive = rawArgs.includes("--yes");
 const cliArgs = parseArgs(process.argv);
+if (cliArgs.models && !MODEL_PROFILES.includes(cliArgs.models)) {
+  console.error(`Error: --models must be one of ${MODEL_PROFILES.join(", ")}`);
+  process.exit(1);
+}
+if (cliArgs.specLayer && !["harness", "openspec"].includes(cliArgs.specLayer)) {
+  console.error("Error: --spec-layer must be harness or openspec");
+  process.exit(1);
+}
+const defaultSpecLayer = existsSync(join(cwd, "openspec")) ? "openspec" : "harness";
 
 let answers: Answers;
 
@@ -90,11 +110,15 @@ if (isNonInteractive) {
     linearProjectId: cliArgs.linearProjectId ?? "",
     notionDatabaseId: cliArgs.notionDatabaseId ?? "",
     notionApiKey: cliArgs.notionApiKey ?? "",
+    models: cliArgs.models ?? "none",
+    specLayer: cliArgs.specLayer ?? defaultSpecLayer,
   };
 } else {
-  answers = await promptWizard(detected);
+  answers = await promptWizard(detected, defaultSpecLayer);
   // Merge CLI overrides
   if (cliArgs.force) answers.force = true;
+  if (cliArgs.models) answers.models = cliArgs.models;
+  if (cliArgs.specLayer) answers.specLayer = cliArgs.specLayer;
 }
 
 // Build and apply plan
@@ -144,5 +168,8 @@ if (result.errors.length > 0) {
 }
 
 console.log("\nDone. Run `./init.sh` to verify your environment.");
+if (answers.models && answers.models !== "none") {
+  console.log("Run `npx @jorgegb/harness-init models sync` to swap unavailable models for their fallbacks.");
+}
 console.log("Review the generated files above.");
 console.log("Have ideas or feature requests? → https://github.com/jorgitogb/harness-template/issues/new");

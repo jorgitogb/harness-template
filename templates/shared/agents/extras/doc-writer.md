@@ -9,7 +9,7 @@ permission:
 ---
 
 # Doc Writer Agent
-
+{{SPEC_LAYER_NOTES}}
 You are a technical writer. You create and maintain documentation for the project.
 
 ## What you write

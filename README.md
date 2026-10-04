@@ -56,6 +56,8 @@ npx @jorgegb/harness-init \
   --agents leader,spec-author,implementer,reviewer \
   --rules default \
   --name my-cool-project \
+  --models mixed \
+  --spec-layer openspec \
   --yes
 ```
 
@@ -88,6 +90,37 @@ your-project/
 │       └── reviewer.md
 └── opencode.jsonc
 ```
+
+---
+
+## Model routing (opencode)
+
+Give each agent role the model that suits it, with fallbacks for when a model disappears.
+
+```sh
+npx @jorgegb/harness-init --models mixed      # free | gwdg | mixed | none (default)
+npx @jorgegb/harness-init models check        # which model each role would use right now
+npx @jorgegb/harness-init models sync         # write the resolved models
+```
+
+| Profile | Use it for |
+|---|---|
+| `free` | OpenCode Zen free models first. Free models may log prompts, so don't use this on confidential code. |
+| `gwdg` | GWDG SAIA (academic cloud) only. Use this for confidential code. |
+| `mixed` | Zen for planning, specs and docs; GWDG for roles that read or write code. |
+
+The generator writes two files:
+
+- `.opencode/models.json`: the profile you edit. Each role (`build`, `plan`, `small`, plus each selected agent) has an ordered list of candidate models, and the first available one is used.
+- `.opencode/opencode.json`: the resolved `agent.<role>.model` and `small_model` values. opencode merges this file over `opencode.jsonc`. `models sync` only changes these keys and leaves the rest of the file alone.
+
+`models check` and `models sync` read the model list from `opencode models --refresh`. For providers listed under `"live"` in the profile, they also query the provider's `/models` endpoint directly (GWDG SAIA: `SAIA_API_KEY`), because `opencode models` only shows the models declared in your config. These two commands are the only part of harness-init that uses the network.
+
+`saia/*` models need a provider named `saia` in your **global** `~/.config/opencode/opencode.json`, with `baseURL` `https://chat-ai.academiccloud.de/v1` and `apiKey` `{env:SAIA_API_KEY}`. Keys never go into the repo.
+
+## Spec layer
+
+`--spec-layer openspec` (the default when `./openspec` exists) keeps specs in [OpenSpec](https://github.com/Fission-AI/OpenSpec) instead of `specs/` + `feature_list.json`. The agents, the human approval gate and TDD stay the same. `docs/specs.md` maps harness concepts to OpenSpec changes, and `init.sh` runs `openspec validate --all`.
 
 ---
 

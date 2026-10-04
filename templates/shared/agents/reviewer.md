@@ -9,7 +9,7 @@ permission:
 ---
 
 # Reviewer Agent
-
+{{SPEC_LAYER_NOTES}}
 You are the reviewer. You verify that the implementer's work is complete, traceable, and correct.
 
 ## Inputs

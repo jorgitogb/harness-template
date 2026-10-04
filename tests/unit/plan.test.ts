@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildPlan, type Answers } from "../../src/plan.js";
 import { applyPlan } from "../../src/apply.js";
@@ -505,6 +505,78 @@ describe("buildPlan", () => {
       const agentName = agentFile.path.replace(".opencode/agent/", "").replace(".md", "");
       expect(configFile!.content).toContain(`"${agentName}"`);
     }
+    rmSync(TMP, { recursive: true, force: true });
+  });
+});
+
+describe("buildPlan — model routing", () => {
+  it("writes no model files by default", () => {
+    mkdirSync(TMP, { recursive: true });
+    const paths = buildPlan(baseAnswers(), TMP).map((f) => f.path);
+    expect(paths).not.toContain(".opencode/models.json");
+    expect(paths).not.toContain(".opencode/opencode.json");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("writes profile and routing for the selected agents", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ models: "gwdg", agents: ["leader", "implementer"] }), TMP);
+    const profile = JSON.parse(plan.find((f) => f.path === ".opencode/models.json")!.content);
+    expect(Object.keys(profile.roles).sort()).toEqual(["build", "implementer", "leader", "plan", "small"]);
+    const routing = JSON.parse(plan.find((f) => f.path === ".opencode/opencode.json")!.content);
+    expect(routing.agent.implementer.model).toBe(profile.roles.implementer[0]);
+    expect(routing.small_model).toBe(profile.roles.small[0]);
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("merges routing into an existing .opencode/opencode.json", () => {
+    mkdirSync(join(TMP, ".opencode"), { recursive: true });
+    writeFileSync(join(TMP, ".opencode/opencode.json"), JSON.stringify({ theme: "dark" }));
+    const plan = buildPlan(baseAnswers({ models: "free" }), TMP);
+    const routing = JSON.parse(plan.find((f) => f.path === ".opencode/opencode.json")!.content);
+    expect(routing.theme).toBe("dark");
+    expect(routing.agent.build.model).toMatch(/^opencode\//);
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("skips model routing for non-opencode CLIs", () => {
+    mkdirSync(TMP, { recursive: true });
+    const paths = buildPlan(baseAnswers({ cli: "claude", models: "mixed" }), TMP).map((f) => f.path);
+    expect(paths).not.toContain(".opencode/models.json");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+});
+
+describe("buildPlan — spec layer", () => {
+  it("harness layer keeps specs/ and feature_list.json, no OpenSpec notes", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers(), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).toContain("feature_list.json");
+    expect(paths).toContain("specs/.gitkeep");
+    expect(plan.find((f) => f.path === ".opencode/agent/leader.md")!.content).not.toContain("OpenSpec");
+    const init = plan.find((f) => f.path === "init.sh")!.content;
+    expect(init).toContain("feature_list.json");
+    expect(init).not.toContain("{{");
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  it("openspec layer drops specs/ and feature_list.json and points agents at openspec/", () => {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers({ specLayer: "openspec", seedDemo: true }), TMP);
+    const paths = plan.map((f) => f.path);
+    expect(paths).not.toContain("feature_list.json");
+    expect(paths).not.toContain("specs/.gitkeep");
+    expect(paths.some((p) => p.startsWith("specs/"))).toBe(false);
+    expect(plan.find((f) => f.path === "docs/specs.md")!.content).toContain("OpenSpec");
+    for (const agent of ["leader", "spec-author", "implementer", "reviewer"]) {
+      expect(plan.find((f) => f.path === `.opencode/agent/${agent}.md`)!.content).toContain("Spec layer: OpenSpec");
+    }
+    expect(plan.find((f) => f.path === "AGENTS.md" && f.mode === "normal")!.content).toContain("## 0. Spec layer: OpenSpec");
+    const init = plan.find((f) => f.path === "init.sh")!.content;
+    expect(init).toContain("openspec validate --all");
+    expect(init).not.toMatch(/for f in .*feature_list\.json/);
+    expect(init).not.toContain("{{");
     rmSync(TMP, { recursive: true, force: true });
   });
 });

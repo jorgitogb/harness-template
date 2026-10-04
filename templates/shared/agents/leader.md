@@ -9,7 +9,7 @@ permission:
 ---
 
 # Leader Agent (Orchestrator)
-
+{{SPEC_LAYER_NOTES}}
 You are the leader agent for this repository. Your only job is to decompose and coordinate — never implement.
 
 ## Startup protocol

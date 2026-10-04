@@ -1,0 +1,19 @@
+{
+  "$comment": "Role -> ordered model candidates (first available wins). Edit freely, then run: npx @jorgegb/harness-init models sync. Planning/docs prefer free OpenCode Zen models; roles that read and write code prefer GWDG SAIA. Needs the 'saia' provider in your global opencode config and SAIA_API_KEY.",
+  "profile": "mixed",
+  "roles": {
+    "build": ["saia/qwen3-coder-next", "saia/devstral-2-123b-instruct-2512", "opencode/big-pickle"],
+    "plan": ["opencode/big-pickle", "saia/qwen3.5-397b-a17b"],
+    "small": ["opencode/nemotron-3.5-lightning-free", "saia/qwen3-30b-a3b-instruct-2507"],
+    "leader": ["opencode/big-pickle", "saia/qwen3.5-397b-a17b"],
+    "spec-author": ["opencode/big-pickle", "saia/qwen3.5-397b-a17b"],
+    "implementer": ["saia/qwen3-coder-next", "saia/devstral-2-123b-instruct-2512", "opencode/big-pickle"],
+    "reviewer": ["saia/glm-5.3-flash", "saia/deepseek-v4-flash-0731", "opencode/nemotron-3-ultra-free"],
+    "security-auditor": ["saia/glm-5.3-flash", "saia/deepseek-v4-flash-0731"],
+    "doc-writer": ["opencode/mimo-v2.6-flash-free", "saia/mistral-medium-3.5-128b"],
+    "perf-analyzer": ["saia/deepseek-v4-flash-0731", "saia/glm-5.3-flash", "opencode/nemotron-3-ultra-free"]
+  },
+  "live": {
+    "saia": { "url": "https://chat-ai.academiccloud.de/v1/models", "apiKeyEnv": "SAIA_API_KEY" }
+  }
+}
