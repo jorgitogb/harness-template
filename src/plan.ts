@@ -389,6 +389,11 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
     files.push(action(resolve("opencode.jsonc"), renderTemplate("opencode/opencode.jsonc.tmpl", vars)));
     files.push(action(resolve("AGENTS.md"), renderTemplate("opencode/AGENTS.md.append.tmpl", vars), "append"));
 
+    // Enforces the approval gate in-process; the gate is defined by specs/ + feature_list.json, so harness layer only.
+    if (answers.sdd && answers.specLayer !== "openspec") {
+      files.push(action(resolve(".opencode/plugins/harness-guard.js"), loadTemplate("opencode/plugins/harness-guard.js")));
+    }
+
     if (answers.models && answers.models !== "none") {
       const profile = selectRoles(loadProfileTemplate(answers.models), answers.agents);
       files.push(action(resolve(PROFILE_PATH), JSON.stringify(profile, null, 2) + "\n"));

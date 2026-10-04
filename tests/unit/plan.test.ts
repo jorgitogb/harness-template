@@ -619,6 +619,28 @@ describe("buildPlan — model routing", () => {
   });
 });
 
+describe("buildPlan — harness guard plugin", () => {
+  const PLUGIN = ".opencode/plugins/harness-guard.js";
+  function paths(answers: Partial<Answers>) {
+    mkdirSync(TMP, { recursive: true });
+    const plan = buildPlan(baseAnswers(answers), TMP);
+    rmSync(TMP, { recursive: true, force: true });
+    return plan.map((f) => f.path);
+  }
+
+  it("is generated for opencode with SDD on the harness spec layer", () => {
+    expect(paths({ cli: "opencode" })).toContain(PLUGIN);
+  });
+
+  it.each([
+    ["non-opencode CLI", { cli: "claude" as const }],
+    ["SDD disabled", { sdd: false }],
+    ["OpenSpec layer", { specLayer: "openspec" as const }],
+  ])("is not generated with %s", (_label, answers) => {
+    expect(paths(answers)).not.toContain(PLUGIN);
+  });
+});
+
 describe("buildPlan — spec layer", () => {
   it("harness layer keeps specs/ and feature_list.json, no OpenSpec notes", () => {
     mkdirSync(TMP, { recursive: true });

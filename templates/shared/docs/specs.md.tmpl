@@ -38,7 +38,7 @@ This writes `specs/<feature>/APPROVED` with a SHA-256 of `requirements.md`, `des
 
 `./init.sh` fails for any `in_progress` or `done` feature whose `APPROVED` file is missing or whose spec changed after approval. Ticking task checkboxes does not count as a change; anything else does. If the spec has to change mid-implementation, the human reviews the change and re-runs the approve command.
 
-Agents are denied permission to write `APPROVED` or run the approve command.
+Agents are denied permission to write `APPROVED` or run the approve command. On opencode, the `harness-guard` plugin also blocks this through any tool, and blocks edits to project code until the active feature's approval is valid.
 
 ```
 pending → [spec_author] → spec_ready → HUMAN → in_progress → [implementer → reviewer] → done
