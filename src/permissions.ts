@@ -43,6 +43,19 @@ const FRAMEWORK_VERIFY_COMMANDS: Partial<Record<Framework, string[]>> = {
   astro: ["pnpm astro check"],
 };
 
+/** Spec approval is the human's act: agents may neither write the file nor run the command. */
+const APPROVAL_EDIT_RULES: Record<string, Action> = { "specs/*/APPROVED": "deny" };
+const APPROVAL_BASH_RULES: Record<string, Action> = { "*harness-init approve*": "deny" };
+
+/** Append the approval-gate denies last so no earlier allow can override them. */
+function withApprovalGate(permission: AgentPermission): AgentPermission {
+  const deny = (value: Permission | undefined, rules: Record<string, Action>): Permission | undefined => {
+    if (value === undefined || value === "deny") return value;
+    return typeof value === "string" ? { "*": value, ...rules } : { ...value, ...rules };
+  };
+  return { ...permission, edit: deny(permission.edit, APPROVAL_EDIT_RULES)!, bash: deny(permission.bash, APPROVAL_BASH_RULES)! };
+}
+
 const READ_ONLY_GIT = ["git status", "git diff", "git log", "git show"];
 
 /** Each command with and without arguments, since `cmd *` does not match a bare `cmd`. */
@@ -91,7 +104,7 @@ export function agentPermissions(input: PermissionInput): Record<string, AgentPe
     "perf-analyzer": { edit: "deny", bash: "deny" },
   };
 
-  return Object.fromEntries(AGENT_ORDER.filter((a) => input.agents.includes(a)).map((a) => [a, all[a]!]));
+  return Object.fromEntries(AGENT_ORDER.filter((a) => input.agents.includes(a)).map((a) => [a, withApprovalGate(all[a]!)]));
 }
 
 /** Render as the `permission:` block of an opencode agent's YAML frontmatter. */

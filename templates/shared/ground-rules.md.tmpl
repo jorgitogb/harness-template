@@ -6,13 +6,13 @@ Non-negotiable rules for this project. Selected during initialization.
 
 ## Immutable rules
 
-- **human-approval-gate** — No feature moves from `spec_ready` to `in_progress` without the human explicitly saying "approved" / "go" / "aprobado" in the chat. No agent may mark a feature `done`. The human is the only entity that transitions status in `feature_list.json`.
+- **human-approval-gate** — No feature moves from `spec_ready` to `in_progress` until a human runs `npx @jorgegb/harness-init approve <name>`, which writes `specs/<name>/APPROVED` with a hash of the spec. Saying "approved" in chat does not count. `./init.sh` fails if an `in_progress` or `done` spec has no approval or changed after it. No agent may write `APPROVED`, run the approve command, or mark a feature `done`.
 
 ## Active rules
 
 - **one-feature-at-a-time** — Maximum 1 feature in `in_progress` state in `feature_list.json` at any time.
 - **no-done-without-green-tests** — `init.sh` must exit 0 before any task is marked `done`.
-- **approved-spec-before-code** — Every feature with `"sdd": true` in `in_progress` or `done` must have a `specs/<name>/` directory with `requirements.md`, `design.md`, and `tasks.md`.
+- **approved-spec-before-code** — Every feature with `"sdd": true` in `in_progress` or `done` must have a `specs/<name>/` directory with `requirements.md`, `design.md`, and `tasks.md`, plus a valid `APPROVED` file.
 - **progress-on-disk** — Agents write artifacts to files (`progress/`, `specs/`), not to chat. The human reads from disk, not from agent responses.
 - **learning-mode** — When `docs/learning.md` exists, agents include brief explanations after major decisions. Disable by deleting `docs/learning.md` or adding `<!-- learning-mode: off -->` to `progress/current.md`.
 
