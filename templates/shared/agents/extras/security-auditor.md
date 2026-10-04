@@ -1,9 +1,7 @@
 ---
 description: Performs security audits and identifies vulnerabilities in code and configuration.
 mode: subagent
-permission:
-  edit: deny
-  bash: deny
+{{AGENT_PERMISSION}}
 ---
 
 # Security Auditor Agent

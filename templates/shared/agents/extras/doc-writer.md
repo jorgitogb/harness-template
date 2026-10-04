@@ -1,15 +1,11 @@
 ---
 description: Writes and maintains project documentation.
 mode: subagent
-permission:
-  edit:
-    "src/**": deny
-    "tests/**": deny
-  bash: deny
+{{AGENT_PERMISSION}}
 ---
 
 # Doc Writer Agent
-
+{{SPEC_LAYER_NOTES}}
 You are a technical writer. You create and maintain documentation for the project.
 
 ## What you write

@@ -3,8 +3,19 @@ import { existsSync, readFileSync } from "node:fs";
 import type { Stack, Cli, Framework } from "./detect.js";
 import type { RenderVars } from "./render.js";
 import { renderTemplate, getStackVars, loadTemplate } from "./render.js";
+import { agentPermissions, permissionYaml } from "./permissions.js";
+import {
+  type ModelProfileName,
+  loadProfileTemplate,
+  selectRoles,
+  preferredResolutions,
+  renderRoutingConfig,
+  PROFILE_PATH,
+  ROUTING_PATH,
+} from "./models.js";
 
 export type TaskBackend = "json" | "linear" | "notion";
+export type SpecLayer = "harness" | "openspec";
 
 export interface Answers {
   cli: Cli;
@@ -26,6 +37,10 @@ export interface Answers {
   linearProjectId: string;
   notionDatabaseId: string;
   notionApiKey: string;
+  /** Per-role model routing profile. Defaults to "none" (inherit the user's global model). */
+  models?: ModelProfileName;
+  /** Where specs live. Defaults to "harness" (specs/ + feature_list.json). */
+  specLayer?: SpecLayer;
 }
 
 export interface FileAction {
@@ -41,52 +56,44 @@ const EXTRA_AGENTS = ["security-auditor", "doc-writer", "perf-analyzer"];
 interface AgentMeta {
   name: string;
   description: string;
-  mode: string;
-  permission: string;
+  mode: "primary" | "subagent";
 }
 
 const ALL_AGENT_META: AgentMeta[] = [
   {
     name: "leader",
     description: "Orchestrator. Decomposes tasks and launches sub-agents. NEVER writes code.",
-    mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "ask" }),
+    mode: "primary",
   },
   {
     name: "spec-author",
     description: "Writes specifications: requirements (EARS), design, and tasks.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
   },
   {
     name: "implementer",
     description: "Writes code and tests following red-green-refactor.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: "allow", bash: "allow" }),
   },
   {
     name: "reviewer",
     description: "Validates traceability and task completion. Produces review reports.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
   },
   {
     name: "security-auditor",
     description: "Performs security audits and identifies vulnerabilities.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: "deny", bash: "deny" }),
   },
   {
     name: "doc-writer",
     description: "Writes and maintains project documentation.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: { "src/**": "deny", "tests/**": "deny" }, bash: "deny" }),
   },
   {
     name: "perf-analyzer",
     description: "Analyzes performance implications and suggests optimizations.",
     mode: "subagent",
-    permission: JSON.stringify({ edit: "deny", bash: "deny" }),
   },
 ];
 
@@ -199,14 +206,50 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
 4. If missing: STOP and ask human to create database in Notion + share with integration + update \`.env\`
 `,
   };
+  const permissions = agentPermissionsFor(answers);
   const selectedAgentEntries = ALL_AGENT_META
     .filter((a) => shouldIncludeAgent(a.name, answers.agents))
     .map((a) => {
       const promptRef = `{file:./.opencode/agent/${a.name}.md}`;
-      return `    "${a.name}": {\n      "description": ${JSON.stringify(a.description)},\n      "mode": "subagent",\n      "prompt": ${JSON.stringify(promptRef)},\n      "permission": ${a.permission}\n    }`;
+      const permission = permissions[a.name];
+      return `    "${a.name}": {\n      "description": ${JSON.stringify(a.description)},\n      "mode": "${a.mode}",\n      "prompt": ${JSON.stringify(promptRef)},\n      "permission": ${JSON.stringify(permission)}\n    }`;
     })
     .join(",\n");
   const agentDefinitions = selectedAgentEntries ? ",\n" + selectedAgentEntries : "";
+
+  const openspec = answers.specLayer === "openspec";
+  const baseFiles = [
+    "AGENTS.md",
+    ...(openspec ? [] : ["feature_list.json"]),
+    "progress/current.md",
+    "docs/architecture.md",
+    "docs/conventions.md",
+    "docs/specs.md",
+    "docs/tdd.md",
+    "docs/verification.md",
+    "CHECKPOINTS.md",
+    "ground-rules.md",
+  ];
+  const specLayerAgentNotes = openspec
+    ? `
+> **Spec layer: OpenSpec.** This project keeps specs in \`openspec/\`, not \`specs/\` + \`feature_list.json\`.
+> Wherever this prompt mentions them, use the mapping in \`docs/specs.md\`: a feature is a change in
+> \`openspec/changes/<change>/\` (\`proposal.md\`, \`design.md\`, \`tasks.md\`, \`specs/<capability>/spec.md\`);
+> requirements are \`### Requirement:\` blocks with \`#### Scenario:\` cases. Use \`/opsx-propose\`, \`/opsx-apply\`
+> and \`/opsx-archive\`, and \`openspec validate <change> --strict\` before handing a spec to the human.
+`
+    : "";
+  const specLayerProjectNotes = openspec
+    ? `## 0. Spec layer: OpenSpec
+
+Specs live in \`openspec/\` (living specs in \`openspec/specs/\`, in-flight work in \`openspec/changes/\`).
+Where this file or the agents mention \`feature_list.json\` or \`specs/<feature>/\`, read \`docs/specs.md\`
+for the OpenSpec equivalent. The human approval gate still applies between \`/opsx-propose\` and \`/opsx-apply\`.
+
+---
+
+`
+    : "";
 
   return {
     PROJECT_NAME: answers.projectName,
@@ -224,11 +267,25 @@ This project uses Notion for task tracking. The local \`feature_list.json\` is a
     BACKEND_TRANSITION_INPROGRESS: backendTransitionInProgress[answers.taskBackend],
     BACKEND_SPEC_READY: backendSpecReady[answers.taskBackend],
     AGENT_DEFINITIONS: agentDefinitions,
+    DEFAULT_AGENT: shouldIncludeAgent("leader", answers.agents) ? "leader" : "build",
     LINEAR_PROJECT_ID: answers.linearProjectId,
     NOTION_DATABASE_ID: answers.notionDatabaseId,
     NOTION_API_KEY: answers.notionApiKey,
+    BASE_FILES: baseFiles.join(" "),
+    SPEC_CHECK: loadTemplate(`shared/init.spec-check.${openspec ? "openspec" : "harness"}.sh`).trimEnd(),
+    SPEC_LAYER_NOTES: specLayerAgentNotes,
+    SPEC_LAYER_PROJECT_NOTES: specLayerProjectNotes,
     ...stackVars,
   };
+}
+
+function agentPermissionsFor(answers: Answers) {
+  return agentPermissions({
+    stack: answers.stack,
+    framework: answers.framework,
+    specLayer: answers.specLayer ?? "harness",
+    agents: answers.agents,
+  });
 }
 
 function shouldIncludeAgent(agentName: string, selectedAgents: string[]): boolean {
@@ -257,7 +314,10 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   files.push(action(resolve("AGENTS.md"), renderTemplate("shared/AGENTS.md.tmpl", vars)));
   files.push(action(resolve("CHECKPOINTS.md"), renderTemplate("shared/CHECKPOINTS.md.tmpl", vars)));
   files.push(action(resolve("init.sh"), renderTemplate("shared/init.sh.tmpl", vars)));
-  files.push(action(resolve("feature_list.json"), renderTemplate("shared/feature_list.json.tmpl", vars)));
+  const openspec = answers.specLayer === "openspec";
+  if (!openspec) {
+    files.push(action(resolve("feature_list.json"), renderTemplate("shared/feature_list.json.tmpl", vars)));
+  }
   files.push(action(resolve("progress/current.md"), renderTemplate("shared/progress/current.md.tmpl", vars)));
   files.push(action(resolve("progress/history.md"), renderTemplate("shared/progress/history.md.tmpl", vars)));
 
@@ -267,10 +327,12 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   }
 
   // --- Specs placeholder ---
-  files.push(action(resolve("specs/.gitkeep"), loadTemplate("shared/specs/.gitkeep")));
+  if (!openspec) {
+    files.push(action(resolve("specs/.gitkeep"), loadTemplate("shared/specs/.gitkeep")));
+  }
 
   // --- Demo feature ---
-  if (answers.seedDemo) {
+  if (answers.seedDemo && !openspec) {
     const name = "hello_harness";
     files.push(action(resolve(`specs/${name}/requirements.md`), renderTemplate(`shared/demo/${name}/requirements.md.tmpl`, vars)));
     files.push(action(resolve(`specs/${name}/design.md`), renderTemplate(`shared/demo/${name}/design.md.tmpl`, vars)));
@@ -282,7 +344,8 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   files.push(action(resolve("docs/conventions.md"), renderTemplate("shared/docs/conventions.md.tmpl", vars)));
 
   if (answers.sdd) {
-    files.push(action(resolve("docs/specs.md"), renderTemplate("shared/docs/specs.md.tmpl", vars)));
+    const specsDoc = openspec ? "shared/docs/specs.openspec.md.tmpl" : "shared/docs/specs.md.tmpl";
+    files.push(action(resolve("docs/specs.md"), renderTemplate(specsDoc, vars)));
   }
   if (answers.tdd) {
     files.push(action(resolve("docs/tdd.md"), renderTemplate("shared/docs/tdd.md.tmpl", vars)));
@@ -295,14 +358,18 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   }
 
   // --- Agents ---
+  // Frontmatter permissions come from the same source as opencode.jsonc so the two cannot drift.
+  const permissions = agentPermissionsFor(answers);
+  const agentFile = (agent: string, template: string) =>
+    action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(template, { ...vars, AGENT_PERMISSION: permissionYaml(permissions[agent]!) }));
   for (const agent of SHARED_AGENTS) {
     if (shouldIncludeAgent(agent, answers.agents)) {
-      files.push(action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(`shared/agents/${agent}.md`, vars)));
+      files.push(agentFile(agent, `shared/agents/${agent}.md`));
     }
   }
   for (const agent of EXTRA_AGENTS) {
     if (shouldIncludeAgent(agent, answers.agents)) {
-      files.push(action(resolve(`.opencode/agent/${agent}.md`), renderTemplate(`shared/agents/extras/${agent}.md`, vars)));
+      files.push(agentFile(agent, `shared/agents/extras/${agent}.md`));
     }
   }
 
@@ -320,7 +387,13 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   // --- OpenCode adapter ---
   if (answers.cli === "opencode") {
     files.push(action(resolve("opencode.jsonc"), renderTemplate("opencode/opencode.jsonc.tmpl", vars)));
-    files.push(action(resolve("AGENTS.md"), loadTemplate("opencode/AGENTS.md.append.tmpl"), "append"));
+    files.push(action(resolve("AGENTS.md"), renderTemplate("opencode/AGENTS.md.append.tmpl", vars), "append"));
+
+    if (answers.models && answers.models !== "none") {
+      const profile = selectRoles(loadProfileTemplate(answers.models), answers.agents);
+      files.push(action(resolve(PROFILE_PATH), JSON.stringify(profile, null, 2) + "\n"));
+      files.push(action(resolve(ROUTING_PATH), renderRoutingConfig(preferredResolutions(profile), readRouting(cwd))));
+    }
   }
 
   // --- Stack-specific ---
@@ -339,6 +412,17 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
   files.push(action(resolve(".gitignore"), gitignoreContent));
 
   return files;
+}
+
+/** Existing `.opencode/opencode.json`, so model routing merges into it instead of clobbering it. */
+function readRouting(cwd: string): Record<string, unknown> | undefined {
+  const path = join(cwd, ROUTING_PATH);
+  if (!existsSync(path)) return undefined;
+  try {
+    return JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
 }
 
 function mergeGitignore(existing: string, additions: string): string {

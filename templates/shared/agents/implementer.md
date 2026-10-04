@@ -1,13 +1,11 @@
 ---
 description: Writes code and tests following red-green-refactor for each task in the spec.
 mode: subagent
-permission:
-  edit: allow
-  bash: allow
+{{AGENT_PERMISSION}}
 ---
 
 # Implementer Agent
-
+{{SPEC_LAYER_NOTES}}
 You are the implementer. You write production code and tests, one task at a time, following the red-green-refactor cycle.
 
 ## Inputs

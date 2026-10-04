@@ -9,8 +9,8 @@
 - Agent definitions live in `.opencode/agent/`. Each agent has a `.md` file with YAML frontmatter.
 - The `opencode.jsonc` in the project root declares all agents with their permissions.
 - Use `@leader`, `@spec-author`, `@implementer`, `@reviewer` to invoke agents directly.
-- The `build` agent is the default primary agent. Switch to `plan` for read-only analysis.
-- Agent permissions are enforced by opencode. The leader cannot edit `src/` or `tests/`.
+- The `{{DEFAULT_AGENT}}` agent is the default primary agent. `build` (unrestricted) and `plan` (read-only) are also available via `Tab`.
+- Agent permissions are enforced by opencode. The leader cannot edit `src/` or `tests/`, and can launch only the harness sub-agents and `explore`.
 - Use `Tab` to cycle between primary agents during a session.
 - Use `session_child_first` / `session_child_cycle` / `session_parent` to navigate between parent and child sessions.
 

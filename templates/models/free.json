@@ -1,0 +1,19 @@
+{
+  "$comment": "Role -> ordered model candidates (first available wins). Edit freely, then run: npx @jorgegb/harness-init models sync. 'saia/*' needs the GWDG SAIA provider in your global opencode config. Free OpenCode Zen models may log prompts: do not use this profile on confidential code.",
+  "profile": "free",
+  "roles": {
+    "build": ["opencode/big-pickle", "opencode/nemotron-3-ultra-free", "saia/qwen3-coder-next"],
+    "plan": ["opencode/big-pickle", "opencode/nemotron-3-ultra-free", "saia/qwen3.5-397b-a17b"],
+    "small": ["opencode/nemotron-3.5-lightning-free", "opencode/ling-3.1-flash-free", "saia/qwen3-30b-a3b-instruct-2507"],
+    "leader": ["opencode/big-pickle", "opencode/nemotron-3-ultra-free", "saia/qwen3.5-397b-a17b"],
+    "spec-author": ["opencode/big-pickle", "opencode/nemotron-3-ultra-free", "saia/qwen3.5-397b-a17b"],
+    "implementer": ["opencode/big-pickle", "opencode/nemotron-3-ultra-free", "saia/qwen3-coder-next"],
+    "reviewer": ["opencode/nemotron-3-ultra-free", "opencode/mimo-v2.6-flash-free", "saia/glm-5.3-flash"],
+    "security-auditor": ["opencode/nemotron-3-ultra-free", "opencode/mimo-v2.6-flash-free", "saia/glm-5.3-flash"],
+    "doc-writer": ["opencode/mimo-v2.6-flash-free", "opencode/big-pickle", "saia/mistral-medium-3.5-128b"],
+    "perf-analyzer": ["opencode/nemotron-3-ultra-free", "opencode/big-pickle", "saia/deepseek-v4-flash-0731"]
+  },
+  "live": {
+    "saia": { "url": "https://chat-ai.academiccloud.de/v1/models", "apiKeyEnv": "SAIA_API_KEY" }
+  }
+}

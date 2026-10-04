@@ -1,6 +1,7 @@
 import * as p from "@clack/prompts";
 import type { Stack, Cli, Framework } from "./detect.js";
-import type { Answers, TaskBackend } from "./plan.js";
+import type { Answers, TaskBackend, SpecLayer } from "./plan.js";
+import type { ModelProfileName } from "./models.js";
 
 const ALL_AGENTS = [
   { name: "leader", label: "leader — orchestrates, never edits code", initial: true },
@@ -29,7 +30,7 @@ export async function promptWizard(detected: {
   cli: Cli | null;
   harnessExists: boolean;
   projectName: string;
-}): Promise<Answers> {
+}, defaultSpecLayer: SpecLayer = "harness"): Promise<Answers> {
   p.intro("harness-init — bootstrap an AI dev workspace");
 
   if (detected.harnessExists) {
@@ -218,6 +219,34 @@ export async function promptWizard(detected: {
     notionDatabaseId = dbId;
   }
 
+  // Spec layer
+  const specLayer = await p.select({
+    message: "Where should specs live?",
+    options: [
+      { value: "harness" as SpecLayer, label: "harness — specs/<feature>/ + feature_list.json" },
+      { value: "openspec" as SpecLayer, label: "openspec — openspec/ changes and specs (/opsx-* commands)" },
+    ],
+    initialValue: defaultSpecLayer,
+  });
+  if (p.isCancel(specLayer)) process.exit(0);
+
+  // Model routing (opencode only)
+  let models: ModelProfileName = "none";
+  if (cli === "opencode") {
+    const modelChoice = await p.select({
+      message: "Per-role model routing?",
+      options: [
+        { value: "none" as ModelProfileName, label: "none — every agent uses your global model" },
+        { value: "free" as ModelProfileName, label: "free — OpenCode Zen free models first (may log prompts)" },
+        { value: "gwdg" as ModelProfileName, label: "gwdg — GWDG SAIA only (data stays in academic cloud)" },
+        { value: "mixed" as ModelProfileName, label: "mixed — Zen for planning/docs, GWDG for code" },
+      ],
+      initialValue: "none" as ModelProfileName,
+    });
+    if (p.isCancel(modelChoice)) process.exit(0);
+    models = modelChoice;
+  }
+
   // Seed demo
   const seedDemo = await p.confirm({
     message: "Seed with a demo feature (hello_harness)?",
@@ -254,6 +283,8 @@ export async function promptWizard(detected: {
     linearProjectId,
     notionDatabaseId,
     notionApiKey,
+    models,
+    specLayer,
   };
 }
 
@@ -323,6 +354,12 @@ export function parseArgs(argv: string[]): Partial<Answers> {
         break;
       case "--force":
         args.force = true;
+        break;
+      case "--models":
+        args.models = raw[++i] as ModelProfileName;
+        break;
+      case "--spec-layer":
+        args.specLayer = raw[++i] as SpecLayer;
         break;
     }
   }

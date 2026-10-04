@@ -1,0 +1,38 @@
+# Spec-Driven Development (OpenSpec)
+
+This project uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) as its spec layer.
+The harness agents (leader, spec-author, implementer, reviewer) follow the same
+SDD + TDD flow as the default harness, but specs live under `openspec/`.
+
+## Where things live
+
+| Harness concept | OpenSpec equivalent |
+|---|---|
+| Feature in `feature_list.json` | A change: `openspec/changes/<change>/` |
+| `specs/<feature>/requirements.md` | `openspec/changes/<change>/specs/<capability>/spec.md` (`### Requirement:` + `#### Scenario:`) |
+| `specs/<feature>/design.md` | `openspec/changes/<change>/design.md` |
+| `specs/<feature>/tasks.md` | `openspec/changes/<change>/tasks.md` |
+| Status `pending` | Idea not yet proposed (or a `proposal.md` without tasks) |
+| Status `spec_ready` | Change proposed and `openspec validate <change>` passes |
+| Status `in_progress` | Human approved; `/opsx-apply` running |
+| Status `done` | All tasks `[x]`, reviewer approved, change archived (`/opsx-archive`) |
+| Living source of truth | `openspec/specs/<capability>/spec.md` |
+
+## Flow
+
+```
+idea → [spec-author: /opsx-propose] → validate → HUMAN APPROVES → [implementer: /opsx-apply → reviewer] → /opsx-archive
+```
+
+1. The spec-author creates the change with `/opsx-propose` (proposal, design, tasks, spec deltas).
+2. Run `openspec validate <change> --strict`. Fix every finding before handing over.
+3. **Human approval gate.** The leader stops and waits. Never start `/opsx-apply` without explicit approval.
+4. The implementer runs the tasks in `tasks.md` one by one, red-green-refactor, marking each `[x]`.
+5. The reviewer checks that every `### Requirement:` has at least one test and every `#### Scenario:` is exercised.
+6. After approval, archive the change with `/opsx-archive` so the deltas merge into `openspec/specs/`.
+
+## Traceability
+
+Requirements in OpenSpec have names, not `R<n>` IDs. Reference the requirement name in the
+test name or a comment (e.g. `// Requirement: User can reset password`), so the reviewer can
+map requirement → test.

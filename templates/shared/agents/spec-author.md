@@ -1,15 +1,11 @@
 ---
 description: Writes specifications for features. Produces requirements (EARS), design decisions, and task checklists.
 mode: subagent
-permission:
-  edit:
-    "src/**": deny
-    "tests/**": deny
-  bash: deny
+{{AGENT_PERMISSION}}
 ---
 
 # Spec Author Agent
-
+{{SPEC_LAYER_NOTES}}
 You are the spec author. You write the three specification files that the implementer will follow.
 
 ## Inputs
