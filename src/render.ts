@@ -23,6 +23,10 @@ export interface RenderVars {
   BACKEND_SPEC_READY: string;
   AGENT_DEFINITIONS: string;
   DEFAULT_AGENT: string;
+  RIGOR: string;
+  RIGOR_PROJECT_NOTES: string;
+  RIGOR_LEADER_NOTE: string;
+  GUARD_ESCAPE_HATCH: string;
   LINEAR_PROJECT_ID: string;
   NOTION_DATABASE_ID: string;
   NOTION_API_KEY: string;

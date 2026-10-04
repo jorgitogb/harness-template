@@ -17,6 +17,10 @@ import {
 export type TaskBackend = "json" | "linear" | "notion";
 export type SpecLayer = "harness" | "openspec";
 
+/** How hard the harness enforces the workflow. See RIGOR_PROJECT_NOTES for what each level changes. */
+export type Rigor = "light" | "standard" | "strict";
+export const RIGOR_LEVELS: Rigor[] = ["light", "standard", "strict"];
+
 export interface Answers {
   cli: Cli;
   stack: Stack;
@@ -41,6 +45,8 @@ export interface Answers {
   models?: ModelProfileName;
   /** Where specs live. Defaults to "harness" (specs/ + feature_list.json). */
   specLayer?: SpecLayer;
+  /** Enforcement level. Defaults to "standard". */
+  rigor?: Rigor;
 }
 
 export interface FileAction {
@@ -251,6 +257,17 @@ for the OpenSpec equivalent. The human approval gate still applies between \`/op
 `
     : "";
 
+  const rigor = answers.rigor ?? "standard";
+  const rigorProjectNotes: Record<Rigor, string> = {
+    light: "Gate problems (missing or stale approval, untraced requirements) are **warnings** in `./init.sh`, and there is no guard plugin. The leader may proceed on a chat approval. Use for prototypes and solo work.",
+    standard: "Gate problems **fail** `./init.sh`. On opencode, the `harness-guard` plugin blocks code edits until the active spec is approved; the human can bypass it with `HARNESS_GUARD=off`.",
+    strict: "Like standard, but `HARNESS_GUARD=off` is ignored, and the implementer and leader may run only verification commands (`./init.sh`, tests, read-only git). Everything else is denied.",
+  };
+  const rigorLeaderNote =
+    rigor === "light"
+      ? "\n> **Rigor: light.** If the human clearly approves the spec in chat, you may treat it as approved even without `specs/<name>/APPROVED`. Still recommend running `npx @jorgegb/harness-init approve <name>`; `./init.sh` will warn until they do.\n"
+      : "";
+
   return {
     PROJECT_NAME: answers.projectName,
     PROJECT_DESCRIPTION: answers.projectDescription,
@@ -274,6 +291,10 @@ for the OpenSpec equivalent. The human approval gate still applies between \`/op
     BASE_FILES: baseFiles.join(" "),
     SPEC_CHECK: loadTemplate(`shared/init.spec-check.${openspec ? "openspec" : "harness"}.sh`).trimEnd(),
     SPEC_LAYER_NOTES: specLayerAgentNotes,
+    RIGOR_LEADER_NOTE: rigorLeaderNote,
+    RIGOR: rigor,
+    RIGOR_PROJECT_NOTES: rigorProjectNotes[rigor],
+    GUARD_ESCAPE_HATCH: rigor === "strict" ? "disabled" : "enabled",
     SPEC_LAYER_PROJECT_NOTES: specLayerProjectNotes,
     ...stackVars,
   };
@@ -284,6 +305,7 @@ function agentPermissionsFor(answers: Answers) {
     stack: answers.stack,
     framework: answers.framework,
     specLayer: answers.specLayer ?? "harness",
+    rigor: answers.rigor ?? "standard",
     agents: answers.agents,
   });
 }
@@ -390,8 +412,8 @@ export function buildPlan(answers: Answers, cwd: string): FileAction[] {
     files.push(action(resolve("AGENTS.md"), renderTemplate("opencode/AGENTS.md.append.tmpl", vars), "append"));
 
     // Enforces the approval gate in-process; the gate is defined by specs/ + feature_list.json, so harness layer only.
-    if (answers.sdd && answers.specLayer !== "openspec") {
-      files.push(action(resolve(".opencode/plugins/harness-guard.js"), loadTemplate("opencode/plugins/harness-guard.js")));
+    if (answers.sdd && answers.specLayer !== "openspec" && answers.rigor !== "light") {
+      files.push(action(resolve(".opencode/plugins/harness-guard.js"), renderTemplate("opencode/plugins/harness-guard.js", vars)));
     }
 
     if (answers.models && answers.models !== "none") {

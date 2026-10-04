@@ -1,5 +1,5 @@
 import type { Framework, Stack } from "./detect.js";
-import type { SpecLayer } from "./plan.js";
+import type { Rigor, SpecLayer } from "./plan.js";
 
 export type Action = "allow" | "ask" | "deny";
 
@@ -12,6 +12,7 @@ export interface PermissionInput {
   stack: Stack;
   framework: Framework;
   specLayer: SpecLayer;
+  rigor?: Rigor;
   agents: string[];
 }
 
@@ -84,8 +85,13 @@ export function agentPermissions(input: PermissionInput): Record<string, AgentPe
   const verify = verifyCommands(input.stack, input.framework);
   const noCodeEdits: Permission = { "src/**": "deny", "tests/**": "deny" };
 
+  // Strict: anything that is not a verification command is denied instead of asked.
+  const otherCommands: Action = input.rigor === "strict" ? "deny" : "ask";
+  const leaderBash: Permission =
+    input.rigor === "strict" ? { "*": "deny", ...commandRules(["./init.sh", ...READ_ONLY_GIT], "allow") } : "ask";
+
   const all: Record<string, AgentPermission> = {
-    leader: { edit: noCodeEdits, bash: "ask", task: leaderTask(input.agents) },
+    leader: { edit: noCodeEdits, bash: leaderBash, task: leaderTask(input.agents) },
     "spec-author": { edit: noCodeEdits, bash: "deny" },
     implementer: {
       edit: {
@@ -93,7 +99,7 @@ export function agentPermissions(input: PermissionInput): Record<string, AgentPe
         ...specRules(input.specLayer),
         ...Object.fromEntries(HARNESS_CONTROL_FILES.map((f) => [f, "deny" as const])),
       },
-      bash: { "*": "ask", ...commandRules(verify, "allow"), ...commandRules(["git push"], "deny") },
+      bash: { "*": otherCommands, ...commandRules(verify, "allow"), ...commandRules(["git push"], "deny") },
     },
     reviewer: {
       edit: { "*": "deny", "progress/**": "allow" },

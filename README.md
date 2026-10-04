@@ -27,6 +27,7 @@ npx @jorgegb/harness-init
 - **Ground rules** — pre-selected defaults like "one feature at a time" and "no done without green tests", compiled into agent permissions.
 - **Human in the loop** — no spec → code transition until a human runs `npx @jorgegb/harness-init approve <feature>`. That writes a hash of the spec to `specs/<feature>/APPROVED`, and `init.sh` fails if the spec is unapproved or changed after approval.
 - **Enforced, not just documented** — on opencode, a generated `harness-guard` plugin blocks code edits until the active feature's spec is approved, stops agents from approving their own specs, and runs `./init.sh` when an agent finishes. `HARNESS_GUARD=off` turns it off for work outside the workflow.
+- **Rigor levels** — `--rigor light` (gate problems are warnings, for prototypes), `standard` (default), or `strict` (no escape hatch; agents run only verification commands).
 - **Stack-aware** — generates correct `init.sh` checks, `.gitignore` entries, and conventions for your language.
 
 ---
@@ -56,6 +57,7 @@ npx @jorgegb/harness-init \
   --sdd --tdd --best-practices \
   --agents leader,spec-author,implementer,reviewer \
   --rules default \
+  --rigor standard \
   --name my-cool-project \
   --models mixed \
   --spec-layer openspec \

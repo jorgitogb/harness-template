@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import type { Stack, Cli, Framework } from "./detect.js";
-import type { Answers, TaskBackend, SpecLayer } from "./plan.js";
+import type { Answers, TaskBackend, SpecLayer, Rigor } from "./plan.js";
 import type { ModelProfileName } from "./models.js";
 
 const ALL_AGENTS = [
@@ -230,6 +230,17 @@ export async function promptWizard(detected: {
   });
   if (p.isCancel(specLayer)) process.exit(0);
 
+  const rigor = await p.select({
+    message: "How strictly should the workflow be enforced?",
+    options: [
+      { value: "standard" as Rigor, label: "standard — gate failures fail init.sh; guard plugin blocks unapproved code edits" },
+      { value: "light" as Rigor, label: "light — gate problems are warnings; no guard plugin (prototypes, solo work)" },
+      { value: "strict" as Rigor, label: "strict — no guard escape hatch; agents may run only verification commands" },
+    ],
+    initialValue: "standard" as Rigor,
+  });
+  if (p.isCancel(rigor)) process.exit(0);
+
   // Model routing (opencode only)
   let models: ModelProfileName = "none";
   if (cli === "opencode") {
@@ -285,6 +296,7 @@ export async function promptWizard(detected: {
     notionApiKey,
     models,
     specLayer,
+    rigor,
   };
 }
 
@@ -360,6 +372,9 @@ export function parseArgs(argv: string[]): Partial<Answers> {
         break;
       case "--spec-layer":
         args.specLayer = raw[++i] as SpecLayer;
+        break;
+      case "--rigor":
+        args.rigor = raw[++i] as Rigor;
         break;
     }
   }
