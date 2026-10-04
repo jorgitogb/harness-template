@@ -88,6 +88,14 @@ describe("harness-guard — code edit gate", () => {
     },
   );
 
+  it("tells a blocked agent to stop and ask the human instead of working around the gate", async () => {
+    feature("pending");
+    const { before } = await guard();
+    const error = await before("edit", { filePath: "src/app.ts" }).catch((e: Error) => e);
+    expect(error.message).toContain("Stop and tell the human");
+    expect(error.message).toMatch(/do not create features, write specs or change feature status/i);
+  });
+
   it("blocks code edits for an in_progress feature whose spec is not approved", async () => {
     spec();
     feature("in_progress");
