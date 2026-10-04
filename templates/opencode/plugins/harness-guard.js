@@ -166,7 +166,9 @@ export const HarnessGuard = async ({ client, directory }) => {
 
       const attempts = (fixAttempts.get(sessionID) ?? 0) + 1;
       fixAttempts.set(sessionID, attempts);
-      const tail = result.output.trimEnd().split("\n").slice(-OUTPUT_TAIL_LINES).join("\n");
+      // Colour codes are noise to the model.
+      const plain = result.output.replace(/\x1b\[[0-9;]*m/g, "");
+      const tail = plain.trimEnd().split("\n").slice(-OUTPUT_TAIL_LINES).join("\n");
       await log("warn", `init.sh failed (attempt ${attempts})`);
 
       if (attempts > MAX_FIX_ATTEMPTS) {
