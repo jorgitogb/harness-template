@@ -179,6 +179,18 @@ describe("harness-guard — init.sh on idle", () => {
     expect(prompts[0]!.args.body.parts[0].text).toContain("tests red");
   });
 
+  it("strips terminal colour codes from the init.sh output it sends", async () => {
+    approvedFeature();
+    writeFileSync(join(TMP, "init.sh"), '#!/usr/bin/env bash\nprintf "\\033[0;31m[FAIL]\\033[0m  tests red\\n"\nexit 1\n');
+    chmodSync(join(TMP, "init.sh"), 0o755);
+    const { after, idle, calls } = await guard();
+    await after("edit", { filePath: "src/app.ts" });
+    await idle();
+    const text: string = calls.find((c) => c.kind === "prompt")!.args.body.parts[0].text;
+    expect(text).toContain("[FAIL]  tests red");
+    expect(text).not.toContain("\u001b");
+  });
+
   it("gives up after two attempts and leaves it to the human", async () => {
     approvedFeature();
     initScript(1);
